@@ -1,7 +1,6 @@
 package com.nocountry.retrueque.model.dto.response;
 
 
-import com.nocountry.retrueque.model.entity.UserEntity;
 
 import java.time.LocalDate;
 
@@ -10,8 +9,18 @@ public record RequestRes(
         String description,
         LocalDate date,
         Boolean status,
-        UserRequest user
+        UserRequest user,
+        UserService provider
 ) {
+    public record UserService(
+            String name,
+            String last_name,
+            String img_profile,
+            String provincia,
+            String departamento,
+            String phone
+    ){
+    }
 
     public record UserRequest(
             String name,
@@ -22,5 +31,7 @@ public record RequestRes(
 
     ){
     }
+
+
 
 }
