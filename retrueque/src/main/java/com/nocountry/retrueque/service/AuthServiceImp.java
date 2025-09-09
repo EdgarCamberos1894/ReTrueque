@@ -8,7 +8,6 @@ import com.nocountry.retrueque.model.entity.UserEntity;
 import com.nocountry.retrueque.service.interfaces.AuthService;
 import com.nocountry.retrueque.service.interfaces.UserService;
 import com.nocountry.retrueque.util.JwtUtils;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -30,7 +29,7 @@ public class AuthServiceImp implements AuthService {
             new UsernamePasswordAuthenticationToken(loginReq.email(), loginReq.password()));
     UserEntity user = userService.getByEmail(loginReq.email());
     String token = this.jwtUtils.generateSessionToken(user);
-    return new LoginRes(token, user.getRole().getName());
+    return new LoginRes(token, user.getRole().getName(), user.getId());
   }
 
   @Override

@@ -1,6 +1,8 @@
 package com.nocountry.retrueque.model.dto.response;
 
 
+import java.util.List;
+
 public record ServiceRes(
         Long id,
         String title,
@@ -8,6 +10,10 @@ public record ServiceRes(
         String rules,
         String imgUrl,
         UserResShort user,
-        CategoryRes category
+        DepartamentoRes departamento,
+        ProvinciaRes provincia,
+        CategoryRes category,
+        List<Integer> days,
+        List<Integer> shiftTime
 ) {
 }

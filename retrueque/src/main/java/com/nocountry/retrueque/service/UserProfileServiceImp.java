@@ -1,57 +1,47 @@
 package com.nocountry.retrueque.service;
 
+import com.nocountry.retrueque.exception.UserProfileNotFoundException;
 import com.nocountry.retrueque.model.dto.request.UserProfileReq;
 import com.nocountry.retrueque.model.dto.response.UserProfileRes;
 import com.nocountry.retrueque.model.entity.DepartamentoEntity;
-import com.nocountry.retrueque.model.entity.UserEntity;
 import com.nocountry.retrueque.model.entity.UserProfileEntity;
 import com.nocountry.retrueque.model.mapper.UserProfileMapper;
 import com.nocountry.retrueque.repository.DepartamentoRepository;
 import com.nocountry.retrueque.repository.UserProfileRepository;
-import com.nocountry.retrueque.repository.UserRepository;
-import com.nocountry.retrueque.security.AuthenticationFacade;
 import com.nocountry.retrueque.service.interfaces.UserProfileService;
-import com.nocountry.retrueque.service.interfaces.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
 @Service
 @RequiredArgsConstructor
 public class UserProfileServiceImp implements UserProfileService {
 
     private final UserProfileRepository userProfileRepository;
-    private final UserRepository userRepository;
     private final UserProfileMapper userProfileMapper;
     private final DepartamentoRepository departamentoRepository;
-    private final UserService userService;
-    private final AuthenticationFacade authenticationFacade;
     private final PasswordEncoder passwordEncoder;
     private final S3FileUploadServiceImp s3FileUploadService;
+    private final AuthServiceImp authService;
 
 
     @Override
     public UserProfileRes getUserProfile() {
-        String email = authenticationFacade.getAuthenticatedUserEmail();
-        UserEntity user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado con email: " + email));
-
-        return userProfileRepository.findById(user.getId())
+        String email = this.authService.getAuthUser().getEmail();
+        return userProfileRepository.findByUserEmail(email)
                 .map(userProfileMapper::toResponse)
-                .orElseThrow(() -> new RuntimeException("Perfil de usuario no encontrado para el usuario con id: " + user.getId()));
+                .orElseThrow(() -> new UserProfileNotFoundException("Perfil de usuario no encontrado para el usuario con email: " + email));
     }
 
     @Override
     @Transactional
     public UserProfileRes updateUserProfile(UserProfileReq updateReq) {
-        String email = authenticationFacade.getAuthenticatedUserEmail();
+        String email = this.authService.getAuthUser().getEmail();
         UserProfileEntity userProfile = userProfileRepository.findByUserEmail(email)
-                .orElseThrow(() -> new RuntimeException("Perfil de usuario no encontrado para el email: " + email));
+                .orElseThrow(() -> new UserProfileNotFoundException("Perfil de usuario no encontrado para el usaurio con email: " + email));
 
         updateUserProfileFields(userProfile,updateReq);
-
         UserProfileEntity savedProfile = userProfileRepository.save(userProfile);
         return userProfileMapper.toResponse(savedProfile);
     }
@@ -83,7 +73,7 @@ public class UserProfileServiceImp implements UserProfileService {
             userProfile.getUser().setLast_name(updateReq.lastname());
         }
         if (updateReq.email() != null && !updateReq.email().isBlank()) {
-            // Podrías añadir aquí una validación de email existente
+            // Si se implementa se requiere validación de email
             userProfile.getUser().setEmail(updateReq.email());
         }
         if (updateReq.password() != null && !updateReq.password().isBlank()) {

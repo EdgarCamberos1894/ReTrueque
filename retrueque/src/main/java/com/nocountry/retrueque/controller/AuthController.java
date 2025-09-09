@@ -1,22 +1,18 @@
 package com.nocountry.retrueque.controller;
 
-import com.nocountry.retrueque.model.dto.request.LoginReq;
 import com.nocountry.retrueque.model.dto.request.EmailVerificationTokenReq;
+import com.nocountry.retrueque.model.dto.request.LoginReq;
 import com.nocountry.retrueque.model.dto.request.ResendTokenEmailReq;
 import com.nocountry.retrueque.model.dto.request.UserReq;
-import com.nocountry.retrueque.model.dto.response.LoginRes;
 import com.nocountry.retrueque.model.dto.response.EmailVerificationTokenRes;
+import com.nocountry.retrueque.model.dto.response.LoginRes;
 import com.nocountry.retrueque.model.dto.response.ResendTokenEmailRes;
 import com.nocountry.retrueque.model.dto.response.UserRes;
-import com.nocountry.retrueque.model.entity.UserEntity;
-import com.nocountry.retrueque.model.mapper.ResendTokenEmailMapper;
-import com.nocountry.retrueque.service.EmailServiceImp;
 import com.nocountry.retrueque.service.TokenServiceImp;
-import com.nocountry.retrueque.service.UserServiceImp;
 import com.nocountry.retrueque.service.interfaces.AuthService;
+import com.nocountry.retrueque.service.interfaces.EmailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import com.nocountry.retrueque.service.interfaces.EmailService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -61,5 +57,4 @@ public class AuthController {
     ResendTokenEmailRes response = emailService.resendVerificationToken(request);
     return ResponseEntity.ok(new ApiResponse<ResendTokenEmailRes>(response));
   }
-
 }

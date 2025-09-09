@@ -1,24 +1,29 @@
 package com.nocountry.retrueque.model.dto.request;
 
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 public record UserReq(
         @NotBlank
-        @Size(min = 2, max = 50)
-        @Pattern(regexp = "^[a-zA-Z\\s]+$", message = "Doesn't match ^[a-zA-Z\\s]+$")
+        @Size(min = 2, max = 50, message = "Name must be at least 8 characters long and no more than 50 characters")
+        @Pattern(regexp = "^[A-ZÑ][a-zñáéíóúü]+(?: [A-ZÑ][a-zñáéíóúü]+)*$",
+                message = "Name should only contain letters and spaces.")
         String name,
+
         @NotBlank
-        @Size(min = 4, max = 100)
-        @Pattern(regexp = "^[a-zA-Z\\s]+$", message = "Doesn't match ^[a-zA-Z\\s]+$")
+        @Size(min = 2, max = 50, message = "Name must be at least 8 characters long and no more than 50 characters")
+        @Pattern(regexp = "^[A-ZÑ][a-zñáéíóúü]+(?: [A-ZÑ][a-zñáéíóúü]+)*$",
+                message = "Name should only contain letters and spaces.")
         String last_name,
-        @NotBlank
-        @Pattern(regexp = "^[a-zA-Z0-9._-]{2,}@[a-zA-Z0-9-]{2,}\\.[a-zA-Z]{2,}$",
-                message = "Doesn't match ^[a-zA-Z0-9._-]{2,}@[a-zA-Z0-9-]{2,}\\.[a-zA-Z]{2,}$")
-        @Size(min = 10)
+
+        @Email
         String email,
+
+        @Pattern(regexp = "^(?=.*[A-ZÑ])(?=.*[a-zñ])(?=.*\\d)(?=.*[-@#$%^&*.,()_+{}|;:'\"<>/!¡¿?])[A-ZÑa-zñ\\d-@#$%^&*.,()_+{}|;:'\"<>/!¡¿?]{6,}$",
+                message = "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character @#$%^&*()_+{}|,.;:'\"<>/!¡¿?")
+        @Size(min = 8, message = "Password must be at least 8 characters long")
         String password
 ) {
 }
