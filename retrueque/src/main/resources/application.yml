@@ -15,6 +15,9 @@ spring:
     hibernate:
       ddl-auto: update
     show-sql: true
+    properties:
+      hibernate:
+        default_schema: retrueque
   mail:
     host: smtp.gmail.com
     port: 587
@@ -26,6 +29,10 @@ spring:
           auth: true
           starttls:
             enable: true
+  flyway:
+    schemas: retrueque
+    default-schema: retrueque
+    create-schemas: true
 logging:
   level:
     org.springframework.security: DEBUG
@@ -48,5 +55,5 @@ aws:
   s3:
     bucketName: ${AWS_BUCKET_NAME}
     accessKeyId: ${AWS_KEY_ID}
-    secretAccessKey: ${AWS_SECRET_ACCES_KEY}
+    secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
     region: ${AWS_REGION}
