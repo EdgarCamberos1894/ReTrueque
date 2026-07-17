@@ -13,31 +13,18 @@ spring:
     password: ${DB_PASSWORD}
   jpa:
     hibernate:
-      ddl-auto: update
-    show-sql: true
+      ddl-auto: validate
+    show-sql: false
     properties:
       hibernate:
         default_schema: retrueque
-  mail:
-    host: smtp.gmail.com
-    port: 587
-    username: ${EMAIL_USERNAME}
-    password: ${EMAIL_PASSWORD}
-    properties:
-      mail:
-        smtp:
-          auth: true
-          starttls:
-            enable: true
   flyway:
     schemas: retrueque
     default-schema: retrueque
     create-schemas: true
 logging:
   level:
-    org.springframework.security: DEBUG
-    org.springframework.security.web.authentication: DEBUG
-    org.springframework.security.web.access: DEBUG
+    org.springframework.security: INFO
 jwt:
   time:
     expiration: ${JWT_EXPIRATION}
@@ -51,6 +38,9 @@ email:
       expiration: ${EMAIL_TOKEN_EXPIRATION}
   link:
     confirmation: ${LINK_CONFIRMATION}
+resend:
+  api-key: ${RESEND_APIKEY}
+  from: ${RESEND_EMAIL}
 aws:
   s3:
     bucketName: ${AWS_BUCKET_NAME}
@@ -58,5 +48,6 @@ aws:
     secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
     region: ${AWS_REGION}
 web:
+  frontend-url: ${FRONTEND_URL}
   cors:
     allowed-origins: ${CORS_ALLOWED}
