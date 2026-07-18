@@ -48,6 +48,6 @@ aws:
     secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
     region: ${AWS_REGION}
 web:
-  frontend-url: ${FRONTEND_URL}
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}
   cors:
-    allowed-origins: ${CORS_ALLOWED}
+    allowed-origins: ${CORS_ALLOWED:${FRONTEND_URL:http://localhost:3000}}
