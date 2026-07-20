@@ -1,0 +1,11 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+
+logging:
+  level:
+    org.springframework.security: WARN
+    org.springframework.security.web.authentication: WARN
+    org.springframework.security.web.access: WARN
