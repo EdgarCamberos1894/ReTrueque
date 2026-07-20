@@ -1,4 +1,6 @@
 spring:
+  profiles:
+    default: dev
   servlet:
     multipart:
       enabled: true
@@ -11,10 +13,27 @@ spring:
     url: ${DATABASE}
     username: ${DB_USER}
     password: ${DB_PASSWORD}
+    hikari:
+      schema: ${DB_SCHEMA:retrueque}
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:2}
+      minimum-idle: ${DB_POOL_MIN_IDLE:0}
+      connection-timeout: ${DB_POOL_CONNECTION_TIMEOUT_MS:30000}
+      idle-timeout: ${DB_POOL_IDLE_TIMEOUT_MS:300000}
+      max-lifetime: ${DB_POOL_MAX_LIFETIME_MS:1200000}
+      pool-name: ${spring.application.name}-pool
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
+    properties:
+      hibernate:
+        default_schema: ${DB_SCHEMA:retrueque}
+  flyway:
+    schemas: ${DB_SCHEMA:retrueque}
+    default-schema: ${DB_SCHEMA:retrueque}
+    create-schemas: true
+    baseline-on-migrate: true
+    baseline-version: 0
   mail:
     host: smtp.gmail.com
     port: 587
@@ -26,24 +45,29 @@ spring:
           auth: true
           starttls:
             enable: true
+
 logging:
   level:
-    org.springframework.security: DEBUG
-    org.springframework.security.web.authentication: DEBUG
-    org.springframework.security.web.access: DEBUG
+    org.springframework.security: INFO
+    org.springframework.security.web.authentication: INFO
+    org.springframework.security.web.access: INFO
+
 jwt:
   time:
     expiration: ${JWT_EXPIRATION}
   secret:
     key: ${JWT_SECRETKEY}
+
 api:
   base: api/v1
+
 email:
   token:
     time:
       expiration: ${EMAIL_TOKEN_EXPIRATION}
   link:
     confirmation: ${LINK_CONFIRMATION}
+
 aws:
   s3:
     bucketName: ${AWS_BUCKET_NAME}
