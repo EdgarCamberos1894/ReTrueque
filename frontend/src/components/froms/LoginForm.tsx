@@ -14,7 +14,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { FcGoogle } from "react-icons/fc";
 import { FaRegEyeSlash, FaRegEye } from "react-icons/fa";
 import { Fetchlogin } from "@/services/LoginFetch";
 import { useAuthStore } from "@/store/auth";
@@ -25,6 +24,13 @@ const formSchema = z.object({
   email: z.string().email("Introduzca un email válido").min(5).max(50),
   password: z.string().min(8).max(50),
 });
+
+const demoAccounts = [
+  { label: "Solicitante", email: "john_doe@example.com" },
+  { label: "Prestadora", email: "jane_smith@example.com" },
+] as const;
+
+const demoPassword = "Demo123!";
 
 // 
 interface LoginFormProps {
@@ -62,15 +68,15 @@ const LoginForm: React.FC<LoginFormProps> = ({ title, extraDiv }) => {
   }
 
   return (
-    <div className="flex flex-col items-center drop-shadow-lg shadow-accent-foreground my-14">
+    <div className="my-8 flex w-full flex-col items-center px-4 drop-shadow-lg shadow-accent-foreground sm:my-14">
       <Form {...form}>
-        <h1 className="text-display-small-bold font-bold text-center bg-white p-2 mb-5 rounded-md drop-shadow-lg">
+        <h1 className="mb-5 max-w-full rounded-md bg-white p-2 text-center text-2xl font-bold drop-shadow-lg sm:text-display-small-bold">
           {title}
         </h1>
         {extraDiv}
         <form
           onSubmit={form.handleSubmit(onSubmit)}
-          className="bg-[#74ACDF] px-28 py-16 rounded-md flex flex-col gap-10 w-[600px] max-w-full"
+          className="flex w-full max-w-[600px] flex-col gap-8 rounded-md bg-[#74ACDF] px-6 py-10 sm:px-12 md:px-20"
         >
           <div className="flex flex-col gap-6">
             <FormItem>
@@ -122,12 +128,8 @@ const LoginForm: React.FC<LoginFormProps> = ({ title, extraDiv }) => {
             >
               Iniciar sesión
             </Button>
-            <Button
-              type="button"
-              className="bg-[#FAFAFA] hover:bg-white drop-shadow-xl text-[14px] shadow-sm font-bold py-6 px-6"
-            >
-              INICIAR SESIÓN CON GOOGLE
-              <FcGoogle className="ml-2 size-[35px]" />
+            <Button asChild className="bg-[#FAFAFA] hover:bg-white text-black drop-shadow-xl text-[14px] shadow-sm font-bold py-6 px-6">
+              <Link href="/auth/registro">Crear una cuenta</Link>
             </Button>
             <Link href="/forgot-password">
               <h1 className="text-white font-bold text-[14px]">
@@ -135,6 +137,25 @@ const LoginForm: React.FC<LoginFormProps> = ({ title, extraDiv }) => {
               </h1>
             </Link>
           </div>
+          <section className="border-t border-white/60 pt-5" aria-labelledby="retrueque-demo-title">
+            <h2 id="retrueque-demo-title" className="font-bold text-white">
+              Acceso de demostración
+            </h2>
+            <p className="mt-1 text-sm text-white/90">Contraseña para ambas: {demoPassword}</p>
+            <div className="mt-3 grid gap-2 sm:grid-cols-2">
+              {demoAccounts.map((account) => (
+                <Button
+                  key={account.email}
+                  type="button"
+                  variant="secondary"
+                  onClick={() => form.reset({ email: account.email, password: demoPassword })}
+                  className="h-auto min-h-10 whitespace-normal px-3 py-2 text-xs"
+                >
+                  Usar {account.label}
+                </Button>
+              ))}
+            </div>
+          </section>
         </form>
       </Form>
     </div>

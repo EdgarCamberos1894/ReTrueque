@@ -27,12 +27,12 @@ const TopbarGeneral = () => {
   return (
     <header className="w-full items-center justify-items-center text-justify">
       <div className="w-full bg-primary mx-0">
-        <div className="flex items-center  h-full px-4">
+        <div className="flex h-full items-center gap-2 px-4">
           {/* Logo */}
-          <div className="flex-shrink-0 text-gray-50" onClick={() => router.push('/')}>
-            <Image alt='logo' src="/logo.png" width={300} height={300} />
+          <div className="flex-shrink-0 cursor-pointer text-gray-50" onClick={() => router.push('/')}>
+            <Image alt='logo' src="/logo.png" width={300} height={300} className="h-auto w-36 sm:w-52 lg:w-[300px]" />
           </div>
-          <div className="h-10 justify-start items-center gap-6 inline-flex">
+          <div className="hidden h-10 items-center justify-start gap-6 lg:inline-flex">
             <div className="w-[184px] justify-center items-center flex text-center hover:text-black text-[#fcfcfc] text-base font-bold leading-normal tracking-tight">
               <Link href='/public/nosotros' >SOBRE NOSOTROS</Link>
             </div>
@@ -43,7 +43,7 @@ const TopbarGeneral = () => {
           {/* User Profile Button */}
           <div className="ml-auto flex items-center">
             {!token ? ( //Si no hay sesion
-              <div className='flex gap-6 text-black hover:text-gray-50 items-center justify-items-end'>
+              <div className='flex items-center justify-items-end gap-2 text-sm text-black hover:text-gray-50 sm:gap-6 sm:text-base'>
 
                 <Link href='/auth/registro'>
                   Registrarse</Link>
