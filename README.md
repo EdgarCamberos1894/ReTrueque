@@ -26,6 +26,12 @@ Este fue un proyecto colaborativo. Mi trabajo se centró principalmente en el ba
 - Comentarios y calificaciones disponibles tras una solicitud aceptada.
 - Subida de imágenes y documentación interactiva en Swagger.
 
+## Acceso demo
+
+- Solicitante: `john_doe@example.com`
+- Prestadora: `jane_smith@example.com`
+- Contrasena para ambas: `Demo123!`
+
 ## Ejecutar el backend
 
 1. Entra en la carpeta `retrueque`.
