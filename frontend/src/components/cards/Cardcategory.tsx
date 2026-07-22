@@ -12,7 +12,7 @@ const BASE_ROUTE= '/public' // no quitar o si no da error de ruta
 
 interface CardServicioProps {
   dataResultados: ResultData[];
-  servicio: string;
+  servicio?: string;
 }
 
 export default function CardServicio({ dataResultados, servicio }: CardServicioProps) {
@@ -23,13 +23,15 @@ export default function CardServicio({ dataResultados, servicio }: CardServicioP
   };
   return (
     <>
-      <div className='mt-8 mb-8'>
-        <p className='w-[497px] h-11 text-black text-[36px] font-bold  leading-[44px]'>{`${servicio}`}</p>
-    </div>
+      {servicio && (
+        <div className="mb-8 mt-8">
+          <h2 className="text-3xl font-bold">{servicio}</h2>
+        </div>
+      )}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
         {dataResultados.map((resultado, index) => (
           <Card
-            key={index}
+            key={resultado.id}
             className="w-full h-full bg-gray-100 border-2 border-[#BAD6EF] rounded-lg shadow-md flex flex-col overflow-hidden"
             style={{ filter: 'drop-shadow(4px 4px 4px rgba(0, 0, 0, 0.25))' }}
           >
@@ -53,7 +55,7 @@ export default function CardServicio({ dataResultados, servicio }: CardServicioP
                 </div>
                 <Button
                   onClick={() => handleClick(resultado.id)}
-                  className="bg-yellow-500 p-2 rounded-full hover:bg-yellow-600 transition duration-300 w-[132px] text-center text-black text-[12px] font-normal leading-none tracking-wide block"
+                  className="h-9 w-[132px] bg-yellow-500 p-2 text-center text-[12px] font-semibold leading-none text-black transition hover:bg-yellow-600"
                 >
                   Ver publicación
                 </Button>

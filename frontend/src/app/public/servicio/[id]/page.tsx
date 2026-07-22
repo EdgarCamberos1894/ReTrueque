@@ -40,17 +40,18 @@ const Page = ({ params }: { params: { id: number } }) => {
   
 
   const serviceProps = {
-    id: data?.data?.id ?? 'ID no disponible',
-    idUser: data?.data?.user?.id ?? 'ID de usuario no disponible',
+    id: data.data.id,
+    idUser: data.data.user.id,
     title: data?.data?.title ?? 'Título no disponible',
     description: data?.data?.description ?? 'Descripción no disponible',
+    rules: data?.data?.rules ?? 'Sin intereses especificados',
     image: data?.data?.imgUrl || "https://placehold.co/571x416/png",
     userName: data?.data?.user?.username ?? 'Usuario no disponible',
     category: data?.data?.category?.name ?? 'Categoría no disponible',
     province: data?.data?.provincia?.name || 'Provincia no disponible',
     department: data?.data?.departamento?.name || 'Departamento no disponible',
-    days: ["D", "L", "M", "M", "J", "V", "S"], // Mapear según los días disponibles
-    shifts: ["Mañana", "Tarde", "Noche"] // Mapear según los turnos disponibles
+    days: data.data.days ?? [],
+    shiftTime: data.data.shiftTime ?? [],
   };
 
   const categoryId = data?.data?.category?.id ?? -1;

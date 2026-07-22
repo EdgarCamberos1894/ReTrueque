@@ -11,6 +11,6 @@ ReTrueque conecta a personas que ofrecen servicios para facilitar intercambios d
 
 El formulario de inicio de sesion carga estas cuentas con un clic:
 
-- Solicitante: `john_doe@example.com`
-- Prestadora: `jane_smith@example.com`
+- Cuenta demo John: `john_doe@example.com`
+- Cuenta demo Jane: `jane_smith@example.com`
 - Contrasena para ambas: `Demo123!`

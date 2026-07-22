@@ -31,12 +31,10 @@ export const ServicesFetch = async (): Promise<ServiciosResponse | null> => {
 export async function ServicesFetchHomeSize12(): Promise<ServiciosResponse | null>{
     try{
         //
-        const response = await fetch(`${API}/api/v1/service`, {
+        const response = await fetch(`${API}/api/v1/service?page=0&size=12&sort=id,desc`, {
             method:"GET",
             headers:{
                 "Content-Type":"application/json",
-                page: '0',
-                size: '12',
             },
         });
         if (!response.ok){

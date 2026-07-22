@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useAuthStore } from '@/store/auth';
-import useMensajesEnviados from '@/hooks/useMensajeEnviados'; // Importar el hook
+import { useQueryClient } from '@tanstack/react-query';
 
 
 const API = process.env.NEXT_PUBLIC_BACKEND_URL as string;
@@ -21,9 +21,9 @@ interface Databutton {
 }
 
 export function ContactUser({ Databutton }: { Databutton: Databutton }) {
-    const { idservice, userId } = Databutton;
+    const { idservice } = Databutton;
     const { token } = useAuthStore.getState();
-    const { refetch } = useMensajesEnviados();
+    const queryClient = useQueryClient();
 
     // Estados para manejar el mensaje y el conteo de caracteres
     const [message, setMessage] = useState("");
@@ -58,7 +58,7 @@ export function ContactUser({ Databutton }: { Databutton: Databutton }) {
                 setStatusMessage({ type: "success", text: "Mensaje enviado con éxito." });
                 setMessage("");
                 setCharCount(0);
-                refetch(); // Refrescar los mensajes enviados
+                await queryClient.invalidateQueries({ queryKey: ['requests', 'sent'] });
             } else {
                 setStatusMessage({ type: "error", text: "Hubo un problema al enviar el mensaje. Inténtalo de nuevo." });
             }

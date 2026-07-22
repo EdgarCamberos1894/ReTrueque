@@ -1,158 +1,158 @@
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { Description } from "@radix-ui/react-dialog";
-import Link from "next/link";
-import useServiceForId from "@/hooks/useServiceForId";
-import {ContactUser} from '@/components/dialog/ContactarUser'
+'use client';
+
+import Image from 'next/image';
+import Link from 'next/link';
+import { Edit, LogIn, UserRound } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { ContactUser } from '@/components/dialog/ContactarUser';
+import { useAuthStore } from '@/store/auth';
 
 interface ServiceCardProps {
   id: number;
   idUser: number;
   title: string;
   description: string;
+  rules: string;
   image: string;
   userName: string;
   category: string;
   province: string;
   department: string;
-  days: string[];
-  shifts: string[];
+  days: number[];
+  shiftTime: number[];
 }
 
-const ServiceCard = ({
+const dayLabels = [
+  { id: 1, short: 'L', name: 'Lunes' },
+  { id: 2, short: 'M', name: 'Martes' },
+  { id: 3, short: 'M', name: 'Miércoles' },
+  { id: 4, short: 'J', name: 'Jueves' },
+  { id: 5, short: 'V', name: 'Viernes' },
+  { id: 6, short: 'S', name: 'Sábado' },
+  { id: 7, short: 'D', name: 'Domingo' },
+];
+
+const shiftLabels: Record<number, string> = {
+  1: 'Mañana',
+  2: 'Tarde',
+  3: 'Noche',
+};
+
+export default function ServiceCard({
   id,
   idUser,
   title,
   description,
+  rules,
   image,
   userName,
   category,
   province,
   department,
   days,
-  shifts
-}: ServiceCardProps) => {
+  shiftTime,
+}: ServiceCardProps) {
+  const token = useAuthStore((state) => state.token);
+  const authUserId = useAuthStore((state) => state.id);
+  const isOwner = Boolean(token) && authUserId === idUser;
 
-  //
-  const Databutton = {
-    idservice: id,
-    userId: idUser
-  };
-  //
   return (
-    <article
-      className=" px-4 lg:px-8 py-12 mx-3 bg-white rounded-3xl overflow-hidden border-2 border-[#BAD6EF]"
-      style={{
-        filter: "drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))",
-      }}
-    >
-      <div className="flex gap-8 flex-col md:flex-row">
-        <aside className="flex-1 bg-transparent flex items-center justify-center">
-          <figure className="space-y-2">
-            <Image
-              src={image || "https://placehold.co/571x416/png"}
-              alt="Service"
-              width={300}
-              height={300}
-              className="object-cover object-center w-full max-h-96"
-            />
-          </figure>
-        </aside>
-        <div className="flex-1 flex flex-col justify-between">
+    <article className="overflow-hidden rounded-lg border-2 border-[#BAD6EF] bg-white p-5 shadow-sm lg:p-8">
+      <div className="grid gap-8 md:grid-cols-2">
+        <div className="relative min-h-72 overflow-hidden rounded-lg bg-gray-100">
+          <Image
+            src={image || 'https://placehold.co/571x416/png'}
+            alt={title}
+            fill
+            className="object-cover"
+          />
+        </div>
+
+        <div className="flex min-w-0 flex-col justify-between gap-6">
           <div>
-            <header className="flex items-center mb-2">
-              <Image
-                className="w-12 h-12 bg-gray-300 rounded-full mr-3 hidden"
-                src="https://placehold.co/79x79/png"
-                alt={userName}
-                width={79}
-                height={79}
-              />
-              <div>
-                <h2 className="text-[2rem] md:text-[3.1rem] font-bold">
-                  {title}
-                </h2>
-                <div
-                  className="flex text-[#F7C036] text-display-small-bold"
-                  aria-label="5 out of 5 stars rating"
-                >
-                  {"★".repeat(5)}
-                </div>
-              </div>
-            </header>
-            <p className="text-[#0C0C0C] mb-4 text-[1rem] md:text-[1rem] lg:text-[1.5rem]">
-              {description}
-            </p>
+            <p className="mb-2 text-sm font-semibold text-[#486f94]">{category}</p>
+            <h1 className="break-words text-3xl font-bold">{title}</h1>
+            <p className="mt-4 text-lg leading-7 text-gray-700">{description}</p>
+            <div className="mt-5 rounded-lg border border-[#F7C036] bg-yellow-50 p-4">
+              <h2 className="text-sm font-bold uppercase">Busca a cambio</h2>
+              <p className="mt-1 text-gray-700">{rules}</p>
+            </div>
           </div>
-          <div className="flex space-x-4 justify-center">
-            <ContactUser Databutton={Databutton}/>
-            <Link
-              href={`/public/perfil/${idUser}`} // Usa la id en la ruta
-              className="bg-[#74ACDF] text-black font-bold px-8 lg:px-12 py-3 rounded"
-              style={{
-                filter: "drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25))",
-              }}
-            >
-              VER PERFIL
-            </Link>
+
+          <div className="flex flex-col gap-3 sm:flex-row">
+            {isOwner ? (
+              <Button asChild className="bg-[#F7C036] text-black hover:bg-[#F6B404]">
+                <Link href={`/dashboard/servicio/${id}/editar`}>
+                  <Edit className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Editar servicio
+                </Link>
+              </Button>
+            ) : token ? (
+              <ContactUser Databutton={{ idservice: id, userId: idUser }} />
+            ) : (
+              <Button asChild className="bg-[#F7C036] text-black hover:bg-[#F6B404]">
+                <Link href="/auth/login">
+                  <LogIn className="mr-2 h-4 w-4" aria-hidden="true" />
+                  Iniciar sesión
+                </Link>
+              </Button>
+            )}
+            <Button asChild variant="outline">
+              <Link href={isOwner ? '/dashboard/perfil' : `/public/perfil/${idUser}`}>
+                <UserRound className="mr-2 h-4 w-4" aria-hidden="true" />
+                {isOwner ? 'Mi perfil' : `Perfil de ${userName}`}
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
-      <section className="my-4 border-gray-200 p-4">
-        <dl className="grid grid-cols-4 gap-8">
-          <div>
-            <dt className="text-gray-500 text-sm">Categoría</dt>
-            <dd className="font-bold">{category}</dd>
-          </div>
-          <div>
-            <dt className="text-gray-500 text-sm">Provincia</dt>
-            <dd className="font-bold">{province}</dd>
-          </div>
-          <div>
-            <dt className="text-gray-500 text-sm">Departamento</dt>
-            <dd className="font-bold">{department}</dd>
-          </div>
-        </dl>
-      </section>
-      <section className="border-gray-200 p-4">
-        <div className="flex justify-between gap-8 flex-col md:flex-row">
-          <div className="flex-1">
-            <h3 className="text-gray-500 text-sm mb-2">Día/s</h3>
-            <ul className="flex space-x-1" aria-label="Días disponibles">
-              {days.map((day, index) => (
-                <li key={index}>
-                  <span
-                    className={`size-[50px] rounded-full flex items-center justify-center text-black text-[20px] ${day === "S" ? "bg-yellow-500" : "border border-gray-300"
-                      }`}
-                  >
-                    {day}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div className="flex-1">
-            <h3 className="text-gray-500 text-sm mb-2">Turno/s</h3>
-            <ul className="flex gap-4" aria-label="Turnos disponibles">
-              {shifts.map((shift, index) => (
-                <li
-                  key={index}
-                  className={`block px-4 py-[9px] rounded-full ${index === 0 ? "bg-[#F7C036]" : "border border-gray-300"
-                    }`}
-                >
-                  <span
-                    className={`text-black size-full font-semibold text-[20px]`}
-                  >
-                    {shift}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          </div>
+
+      <dl className="mt-8 grid gap-4 border-t pt-6 sm:grid-cols-3">
+        <div>
+          <dt className="text-sm text-gray-500">Categoría</dt>
+          <dd className="font-semibold">{category}</dd>
         </div>
-      </section>
+        <div>
+          <dt className="text-sm text-gray-500">Provincia</dt>
+          <dd className="font-semibold">{province}</dd>
+        </div>
+        <div>
+          <dt className="text-sm text-gray-500">Departamento</dt>
+          <dd className="font-semibold">{department}</dd>
+        </div>
+      </dl>
+
+      <div className="mt-6 grid gap-6 border-t pt-6 md:grid-cols-2">
+        <section>
+          <h2 className="mb-3 text-sm font-semibold text-gray-600">Días disponibles</h2>
+          <ul className="flex flex-wrap gap-2">
+            {dayLabels.map((day) => {
+              const selected = days.includes(day.id);
+              return (
+                <li key={day.id}>
+                  <span
+                    title={day.name}
+                    className={`flex h-10 w-10 items-center justify-center rounded-full border font-semibold ${selected ? 'border-[#F6B404] bg-[#F7C036]' : 'border-gray-300 bg-gray-100 text-gray-400'}`}
+                  >
+                    {day.short}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        </section>
+
+        <section>
+          <h2 className="mb-3 text-sm font-semibold text-gray-600">Horarios</h2>
+          <ul className="flex flex-wrap gap-2">
+            {shiftTime.map((shift) => (
+              <li key={shift} className="rounded-full border border-[#618FBA] bg-[#BAD6EF] px-4 py-2 font-semibold">
+                {shiftLabels[shift] ?? `Turno ${shift}`}
+              </li>
+            ))}
+          </ul>
+        </section>
+      </div>
     </article>
   );
-};
-
-export default ServiceCard;
+}

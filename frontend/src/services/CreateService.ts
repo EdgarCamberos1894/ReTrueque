@@ -2,56 +2,41 @@ import { useAuthStore } from '@/store/auth';
 
 const API = process.env.NEXT_PUBLIC_BACKEND_URL as string;
 
-export async function CreateServices(
-    title: string,
-    description: string,
-    rules: string,
-    imgUrl: File,
-    categoryId: string,
-    days: string | string[],
-    shiftTime: string | string[],
-): Promise<any> {
-    const { token } = useAuthStore.getState();
+export interface ServicePayload {
+  title: string;
+  description: string;
+  rules: string;
+  image?: File | null;
+  categoryId: number;
+  days: number[];
+  shiftTime: number[];
+}
 
-    const formData = new FormData();
-    formData.append("title", title);
-    formData.append("description", description);
-    formData.append("rules", rules);
-    formData.append("imgUrl", imgUrl);
-    formData.append("categoryId", categoryId);
+export async function saveService(payload: ServicePayload, serviceId?: number): Promise<void> {
+  const { token } = useAuthStore.getState();
+  const formData = new FormData();
 
-    //Convierte `days` a una cadena separada por comas
-    if (Array.isArray(days)) {
-        formData.append("days", days.join(','));
-    } else {
-        formData.append("days", days);
-    }
+  formData.append('title', payload.title);
+  formData.append('description', payload.description);
+  formData.append('rules', payload.rules);
+  formData.append('categoryId', payload.categoryId.toString());
+  formData.append('days', payload.days.join(','));
+  formData.append('shiftTime', payload.shiftTime.join(','));
+  if (payload.image) {
+    formData.append('imgUrl', payload.image);
+  }
 
-    //Convierte `shiftTime` a una cadena separada por comas
-    if (Array.isArray(shiftTime)) {
-        formData.append("shiftTime", shiftTime.join(','));
-    } else {
-        formData.append("shiftTime", shiftTime);
-    }
+  const response = await fetch(
+    `${API}/api/v1/service${serviceId ? `/${serviceId}` : ''}`,
+    {
+      method: serviceId ? 'PUT' : 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    },
+  );
 
-    console.log(formData)
-
-    const requestOptions: RequestInit = {
-        method: 'POST',
-        headers: new Headers({
-            'Authorization': `Bearer ${token}`
-        }),
-        body: formData
-    };
-
-    try {
-        const response = await fetch(`${API}/api/v1/service`, requestOptions);
-        if (!response.ok) {
-            throw new Error(`Error: ${response.statusText}`);
-        }
-        return await response.json();
-    } catch (error) {
-        console.error('Error:', error);
-        throw error;
-    }
+  if (!response.ok) {
+    const message = await response.text();
+    throw new Error(message || 'No se pudo guardar el servicio.');
+  }
 }

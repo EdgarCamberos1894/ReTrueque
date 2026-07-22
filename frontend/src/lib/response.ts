@@ -208,14 +208,14 @@ export interface ServicieByUserResponse {
             id: number;
             username: string;
         };
-        departamento: string | null;
-        provincia: string | null;
+        departamento: DepartamentoDataServiciosResponse | null;
+        provincia: ProvinciaDataServiciosResponse | null;
         category: {
             id: number;
             name: string;
         };
         days: number[];
-        shiftTime: string[];
+        shiftTime: number[];
     }>;
     success: boolean;
 }
@@ -265,5 +265,59 @@ export interface DataUpdateProfileResponse {
 export interface DeleteServiceResponse {
     message: string;
     data:    string;
+    success: boolean;
+}
+
+export interface ExchangeUser {
+    id: number;
+    name: string;
+    last_name: string;
+    img_profile: string | null;
+    provincia: string | null;
+    departamento: string | null;
+    phone?: string | null;
+}
+
+export interface ExchangeRequest {
+    id: number;
+    description: string;
+    date: string;
+    status: boolean | null;
+    rating: number | null;
+    review: string | null;
+    user: ExchangeUser;
+    provider: ExchangeUser;
+    service: {
+        id: number;
+        title: string;
+    };
+}
+
+export interface RequestsResponse {
+    message: string;
+    data: ExchangeRequest[];
+    success: boolean;
+}
+
+export interface UserComment {
+    id: number;
+    name: string;
+    lastname: string;
+    review: string;
+    rating: number;
+    imgUrl: string | null;
+}
+
+export interface CommentsResponse {
+    message: string;
+    data: {
+        content: UserComment[];
+        currentPage: number;
+        totalPages: number;
+        totalElements: number;
+        isFirst: boolean;
+        isLast: boolean;
+        pageSize: number;
+    };
     success: boolean;
 }

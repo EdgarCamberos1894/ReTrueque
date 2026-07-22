@@ -26,8 +26,8 @@ const formSchema = z.object({
 });
 
 const demoAccounts = [
-  { label: "Solicitante", email: "john_doe@example.com" },
-  { label: "Prestadora", email: "jane_smith@example.com" },
+  { label: "John", email: "john_doe@example.com" },
+  { label: "Jane", email: "jane_smith@example.com" },
 ] as const;
 
 const demoPassword = "Demo123!";

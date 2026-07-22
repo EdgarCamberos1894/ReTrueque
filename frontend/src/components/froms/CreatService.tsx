@@ -1,357 +1,274 @@
 'use client';
 
-import { useState } from 'react';
-import { Camera } from 'lucide-react';
-import { CreateServices } from '@/services/CreateService';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import useProvincias from "@/hooks/useProvincias";
-import useCategorys from '@/hooks/useCategorys';
-import useDepartaments from '@/hooks/useDepartaments';
 import Image from 'next/image';
-import { Card } from "@/components/ui/card";
-import { z } from 'zod';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import {SuccessDialog} from '@/components/dialog/Success-dialog'
+import { useQueryClient } from '@tanstack/react-query';
+import { Camera, Save, X } from 'lucide-react';
+import { z } from 'zod';
+import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Label } from '@/components/ui/label';
+import useCategorys from '@/hooks/useCategorys';
+import type { DataServiceForIdResponse } from '@/lib/response';
+import { saveService } from '@/services/CreateService';
 
 const serviceSchema = z.object({
-    title: z.string().min(5, 'El título debe tener al menos 5 caracteres'),
-    description: z.string().min(10, 'La descripción debe tener al menos 10 caracteres'),
-    rules: z.string().min(10, 'Las reglas deben tener al menos 10 caracteres'),
-    selectedFile: z.instanceof(File).refine(
-        (file) => file.size <= 2 * 1024 * 1024, // Máx. 2MB
-        { message: 'La imagen debe ser menor a 2MB' }
-    ).refine(
-        (file) => ['image/jpeg', 'image/png'].includes(file.type),
-        { message: 'El formato de la imagen debe ser JPEG o PNG' }
-    ),
-    selectedCategoryId: z.number().min(1, 'Debes seleccionar una categoría'),
+  title: z.string().trim().min(5, 'El título debe tener al menos 5 caracteres.'),
+  description: z.string().trim().min(10, 'La descripción debe tener al menos 10 caracteres.'),
+  rules: z.string().trim().min(10, 'Los intereses deben tener al menos 10 caracteres.'),
+  categoryId: z.number().min(1, 'Selecciona una categoría.'),
+  days: z.array(z.number()).min(1, 'Selecciona al menos un día.'),
+  shiftTime: z.array(z.number()).min(1, 'Selecciona al menos un horario.'),
 });
 
 const daysOfWeek = [
-    { name: 'D', number: 0 },
-    { name: 'L', number: 1 },
-    { name: 'M', number: 2 },
-    { name: 'M', number: 3 },
-    { name: 'J', number: 4 },
-    { name: 'V', number: 5 },
-    { name: 'S', number: 6 }
+  { name: 'L', label: 'Lunes', number: 1 },
+  { name: 'M', label: 'Martes', number: 2 },
+  { name: 'M', label: 'Miércoles', number: 3 },
+  { name: 'J', label: 'Jueves', number: 4 },
+  { name: 'V', label: 'Viernes', number: 5 },
+  { name: 'S', label: 'Sábado', number: 6 },
+  { name: 'D', label: 'Domingo', number: 7 },
 ];
 
 const timeOfDay = [
-    { name: 'Mañana', number: 1 },
-    { name: 'Tarde', number: 2 },
-    { name: 'Noche', number: 3 }
+  { name: 'Mañana', number: 1 },
+  { name: 'Tarde', number: 2 },
+  { name: 'Noche', number: 3 },
 ];
 
-export default function CreateService() {
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [selectedFile, setSelectedFile] = useState<File | null>(null);
-    const [days, setDays] = useState<number[]>([]);
-    const [shiftTime, setShiftTime] = useState<number[]>([]);
-    const [selectedProvinciaId, setSelectedProvinciaId] = useState<number | null>(null);
-    const [selectedCategoryId, setSelectedCategoryId] = useState<number | null>(null);
-    const [selectedDepartamentoId, setSelectedDepartamentoId] = useState<number | null>(null);
-    const [title, setTitle] = useState('');
-    const [description, setDescription] = useState('');
-    const [rules, setRules] = useState('');
-    const router = useRouter();
-    const [validationErrors, setValidationErrors] = useState<string[]>([]);
+interface ServiceFormProps {
+  service?: DataServiceForIdResponse;
+}
 
-    const { data: provincias, isLoading: isLoadingProvincias } = useProvincias();
-    const { data: categories, isLoading: isLoadingCategories } = useCategorys();
-    const { data: departamentos, isLoading: isLoadingDepartamentos } = useDepartaments(selectedProvinciaId ?? 0);
+export default function ServiceForm({ service }: ServiceFormProps) {
+  const isEditing = Boolean(service);
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const { data: categories, isLoading: isLoadingCategories } = useCategorys();
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreview, setImagePreview] = useState(service?.imgUrl ?? '');
+  const [days, setDays] = useState<number[]>(service?.days ?? []);
+  const [shiftTime, setShiftTime] = useState<number[]>(service?.shiftTime ?? []);
+  const [selectedCategoryId, setSelectedCategoryId] = useState(service?.category.id ?? 0);
+  const [title, setTitle] = useState(service?.title ?? '');
+  const [description, setDescription] = useState(service?.description ?? '');
+  const [rules, setRules] = useState(service?.rules ?? '');
+  const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [submitError, setSubmitError] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleDaySelection = (dayNumber: number) => {
-        setDays((prev) =>
-            prev.includes(dayNumber) ? prev.filter((d) => d !== dayNumber) : [...prev, dayNumber]
-        );
-    };
+  useEffect(() => {
+    if (!selectedFile) return;
+    const previewUrl = URL.createObjectURL(selectedFile);
+    setImagePreview(previewUrl);
+    return () => URL.revokeObjectURL(previewUrl);
+  }, [selectedFile]);
 
-    const handleTimeSelection = (timeNumber: number) => {
-        setShiftTime((prev) =>
-            prev.includes(timeNumber) ? prev.filter((t) => t !== timeNumber) : [...prev, timeNumber]
-        );
-    };
-
-    const handleSubmit = async (event: React.FormEvent) => {
-        event.preventDefault();
-
-        // Validar datos usando Zod
-        const formData = {
-            title,
-            description,
-            rules,
-            selectedFile,
-            selectedCategoryId: selectedCategoryId || 0,
-        };
-
-        const result = serviceSchema.safeParse(formData);
-
-        if (!result.success) {
-            // Muestra errores de validación
-            setValidationErrors(result.error.errors.map((err) => err.message));
-            return;
-        }
-        setValidationErrors([]);
-        try {
-            const response = await CreateServices(
-                title,
-                description,
-                rules,
-                selectedFile!,
-                selectedCategoryId?.toString() ?? '',
-                days.map((day) => day.toString()),
-                shiftTime.map((time) => time.toString())
-            );
-            if (response.success == true) {
-                setIsDialogOpen(true);
-            }
-            
-        } catch (error) {
-            console.error('Error al enviar el formulario:', error);
-        }
-    };
-
-
-    return (
-        <>
-            <form onSubmit={handleSubmit} className="space-y-8 mt-5 mb-20 w-full max-w-[1232px] mx-auto px-4">
-                {/* Contenido del formulario */}
-                <h2 className="font-bold text-[36px] mx-auto max-w-3xl">Publica tu anuncio</h2>
-                <Card className="w-full max-w-3xl mx-auto rounded-3xl p-8 flex justify-center bg-[#F7C036] border-none">
-                    {/* Botón para seleccionar imagen */}
-                    <div className="w-fit bg-[#F7C036] flex flex-col items-center px-6 py-2 rounded-lg font-semibold">
-                        <Card className="w-full max-w-3xl mx-auto rounded-3xl p-8 flex justify-center bg-[#F7C036] border-none">
-                            {/* Botón para seleccionar imagen */}
-                            <div className="w-fit bg-white flex flex-col items-center px-6 py-2 rounded-lg font-semibold">
-                                <label htmlFor="file-input" className="cursor-pointer flex flex-col items-center">
-                                    <Camera className="w-16 h-16 mx-auto" />
-                                    <h3>Añadir foto</h3>
-                                </label>
-                                <input
-                                    id="file-input"
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(e) => {
-                                        if (e.target.files && e.target.files[0]) {
-                                            setSelectedFile(e.target.files[0]);
-                                        }
-                                    }}
-                                    className="hidden"
-                                />
-                                {/* {selectedFile && (
-                                    <div className="mt-2 bg-[#F7C036]">
-                                        <Image
-                                            src={URL.createObjectURL(selectedFile)}
-                                            alt="Selected file"
-                                            width={96}
-                                            height={96}
-                                            className="object-cover rounded-lg bg-[#F7C036]"
-                                        />
-                                    </div>
-                                )} */}
-
-                            </div>
-                        </Card>
-                        {selectedFile && (
-                            <div className="mt-2 bg-[#F7C036]">
-                                <Image
-                                    src={URL.createObjectURL(selectedFile)}
-                                    alt="Selected file"
-                                    width={96}
-                                    height={96}
-                                    className="object-cover rounded-lg bg-[#F7C036]"
-                                />
-                            </div>
-                        )}
-                    </div>
-                </Card>
-                <Card className="w-full max-w-3xl mx-auto rounded-3xl bg-[#74ACDF] px-4 lg:px-24 py-2 lg:py-14">
-                    <div className="space-y-4">
-                        {/* Input para Título */}
-                        <div>
-                            <Label htmlFor="title" className="block text-lg font-semibold">Título</Label>
-                            <input
-                                id="title"
-                                type="text"
-                                value={title}
-                                onChange={(e) => setTitle(e.target.value)}
-                                placeholder="Título del anuncio"
-                                className="w-full p-2 mt-1 border rounded"
-                            />
-                        </div>
-
-                        {/* Input para Descripción */}
-                        <div>
-                            <Label htmlFor="description" className="block text-lg font-semibold">Descripción</Label>
-                            <textarea
-                                id="description"
-                                value={description}
-                                onChange={(e) => setDescription(e.target.value)}
-                                placeholder="Explica en qué consiste tu servicio o el estado del producto"
-                                className="w-full p-2 mt-1 border rounded h-32"
-                            />
-                        </div>
-
-                        {/* Input para Reglas */}
-                        <div>
-                            <Label htmlFor="rules" className="block text-lg font-semibold">Intereses de intercambio</Label>
-                            <textarea
-                                id="rules"
-                                value={rules}
-                                onChange={(e) => setRules(e.target.value)}
-                                placeholder="Explica qué pides a cambio por tu servicio o producto"
-                                className="w-full p-2 mt-1 border rounded h-32"
-                            />
-                        </div>
-
-                        {/* Select para Categorías */}
-                        <div>
-                            <Label htmlFor="category" className="block text-lg font-semibold">Categoría</Label>
-                            <select
-                                id="category"
-                                value={selectedCategoryId?.toString() ?? ''}
-                                onChange={(e) => setSelectedCategoryId(Number(e.target.value))}
-                                className="w-full p-2 mt-1 border rounded"
-                            >
-                                <option value="">Selecciona una categoría</option>
-                                {isLoadingCategories ? (
-                                    <option value="" disabled>
-                                        Cargando categorías...
-                                    </option>
-                                ) : (
-                                    categories?.map((category) => (
-                                        <option key={category.id} value={category.id}>
-                                            {category.name}
-                                        </option>
-                                    ))
-                                )}
-                            </select>
-                        </div>
-
-                        {/* Select para Provincias */}
-                        <div>
-                            <Label htmlFor="provincia" className="block text-lg font-semibold">Provincia</Label>
-                            <select
-                                id="provincia"
-                                value={selectedProvinciaId?.toString() ?? ''}
-                                onChange={(e) => setSelectedProvinciaId(Number(e.target.value))}
-                                className="w-full p-2 mt-1 border rounded"
-                            >
-                                <option value="">Selecciona una provincia</option>
-                                {isLoadingProvincias ? (
-                                    <option value="" disabled>
-                                        Cargando provincias...
-                                    </option>
-                                ) : (
-                                    provincias?.map((provincia) => (
-                                        <option key={provincia.id} value={provincia.id}>
-                                            {provincia.name}
-                                        </option>
-                                    ))
-                                )}
-                            </select>
-                        </div>
-
-                        {/* Select para Departamentos */}
-                        <div>
-                            <Label htmlFor="departamento" className="block text-lg font-semibold">Departamento</Label>
-                            <select
-                                id="departamento"
-                                value={selectedDepartamentoId?.toString() ?? ''}
-                                onChange={(e) => setSelectedDepartamentoId(Number(e.target.value))}
-                                className="w-full p-2 mt-1 border rounded"
-                            >
-                                <option value="">Selecciona un departamento</option>
-                                {isLoadingDepartamentos ? (
-                                    <option value="" disabled>
-                                        Cargando departamentos...
-                                    </option>
-                                ) : (
-                                    departamentos?.map((departamento) => (
-                                        <option key={departamento.id} value={departamento.id}>
-                                            {departamento.name}
-                                        </option>
-                                    ))
-                                )}
-                            </select>
-                        </div>
-
-                        {/* Checkbox para Días de la Semana */}
-                        <div>
-                            <Label className="text-white font-semibold text-[1.2rem] my-4">Días de la semana</Label>
-                            <p className="text-sm text-white mb-2">
-                                Marca los días y horarios que tenés
-                                disponible para realizar el trueque
-                            </p>
-                            <div className="flex justify-between mb-2">
-                                {daysOfWeek.map((day) => (
-                                    <div
-                                        key={day.number}
-                                        className="flex flex-col items-center gap-3"
-                                    >
-                                        <Label
-                                            htmlFor={`day-${day.number}`}
-                                            className="ml-1 bg-[#F7C036] text-center font-bold aspect-square p-4 rounded-full"
-                                        >
-                                            {day.name}
-                                        </Label>
-                                        <Checkbox
-                                            id={`day-${day.number}`}
-                                            checked={days.includes(day.number)}
-                                            onCheckedChange={() => handleDaySelection(day.number)}
-                                            className="border-black border-2"
-                                        />
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Checkbox para Horarios */}
-                        <div>
-                            <Label className="text-white font-semibold text-[1.2rem] my-4">Horarios de trabajo</Label>
-                            <div className="flex justify-center space-x-4 mt-6">
-                                {timeOfDay.map((time) => (
-                                    <label key={time.number} className="flex items-center gap-2">
-                                        <Checkbox
-                                            checked={shiftTime.includes(time.number)}
-                                            onCheckedChange={() => handleTimeSelection(time.number)}
-                                            className="border-black border-2"
-                                        />
-                                        <span>{time.name}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Botón de Enviar */}
-                        <div className="flex justify-center gap-x-6">
-                            <Button
-                                variant="outline"
-                                className="border-white border-2 bg-transparent font-bold px-14 py-6 drop-shadow-md"
-                            >
-                                Cancelar
-                            </Button>
-                            <Button
-                                type="submit"
-                                className="bg-[#F7C036] hover:bg-[#F7C036] text-black font-bold px-14 py-6 drop-shadow-md"
-                            >
-                                Publicar
-                            </Button>
-                        </div>
-                    </div>
-                </Card>
-            </form>
-            {validationErrors.length > 0 && (
-                <div className="text-red-500">
-                    {validationErrors.map((error, index) => (
-                        <p key={index}>{error}</p>
-                    ))}
-                </div>
-            )}
-            <SuccessDialog isOpen={isDialogOpen} onClose={() => setIsDialogOpen(false)} />
-        </>
+  const toggleValue = (
+    value: number,
+    setter: React.Dispatch<React.SetStateAction<number[]>>,
+  ) => {
+    setter((current) =>
+      current.includes(value) ? current.filter((item) => item !== value) : [...current, value],
     );
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setSubmitError('');
+
+    const result = serviceSchema.safeParse({
+      title,
+      description,
+      rules,
+      categoryId: selectedCategoryId,
+      days,
+      shiftTime,
+    });
+    const errors = result.success ? [] : result.error.errors.map((error) => error.message);
+
+    if (!isEditing && !selectedFile) {
+      errors.push('Selecciona una imagen para el servicio.');
+    }
+    if (selectedFile && selectedFile.size > 2 * 1024 * 1024) {
+      errors.push('La imagen debe ser menor a 2 MB.');
+    }
+    if (selectedFile && !['image/jpeg', 'image/png', 'image/webp'].includes(selectedFile.type)) {
+      errors.push('La imagen debe ser JPEG, PNG o WebP.');
+    }
+    if (errors.length > 0) {
+      setValidationErrors(errors);
+      return;
+    }
+
+    setValidationErrors([]);
+    setIsSubmitting(true);
+    try {
+      await saveService(
+        {
+          title: title.trim(),
+          description: description.trim(),
+          rules: rules.trim(),
+          image: selectedFile,
+          categoryId: selectedCategoryId,
+          days,
+          shiftTime,
+        },
+        service?.id,
+      );
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['services'] }),
+        queryClient.invalidateQueries({ queryKey: ['servicesById'] }),
+        queryClient.invalidateQueries({ queryKey: ['serviceForId', service?.id] }),
+      ]);
+      router.push('/dashboard/perfil');
+      router.refresh();
+    } catch (error) {
+      setSubmitError(error instanceof Error ? error.message : 'No se pudo guardar el servicio.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <main className="mx-auto w-full max-w-4xl px-4 py-10">
+      <header className="mb-6">
+        <h1 className="text-3xl font-bold">{isEditing ? 'Editar servicio' : 'Publicar servicio'}</h1>
+      </header>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <section className="rounded-lg border border-[#BAD6EF] bg-white p-6 shadow-sm">
+          <Label htmlFor="service-image" className="mb-3 block text-base font-semibold">
+            Imagen
+          </Label>
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
+            <div className="relative h-40 w-full overflow-hidden rounded-lg bg-gray-100 sm:w-60">
+              {imagePreview ? (
+                <Image src={imagePreview} alt="Vista previa del servicio" fill className="object-cover" />
+              ) : (
+                <div className="flex h-full items-center justify-center text-gray-500">
+                  <Camera className="h-10 w-10" aria-hidden="true" />
+                </div>
+              )}
+            </div>
+            <label
+              htmlFor="service-image"
+              className="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-md border border-black bg-white px-4 text-sm font-semibold hover:bg-gray-100 focus-within:ring-2 focus-within:ring-[#618FBA]"
+            >
+              <Camera className="h-4 w-4" aria-hidden="true" />
+              {imagePreview ? 'Cambiar imagen' : 'Seleccionar imagen'}
+              <input
+                id="service-image"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                onChange={(event) => setSelectedFile(event.target.files?.[0] ?? null)}
+                className="sr-only"
+              />
+            </label>
+          </div>
+        </section>
+
+        <section className="space-y-5 rounded-lg border border-[#618FBA] bg-[#BAD6EF] p-6">
+          <div>
+            <Label htmlFor="title" className="text-base font-semibold">Título</Label>
+            <input
+              id="title"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+              className="mt-1 h-11 w-full rounded-md border border-gray-500 bg-white px-3 focus:outline-none focus:ring-2 focus:ring-[#618FBA]"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="description" className="text-base font-semibold">Descripción</Label>
+            <textarea
+              id="description"
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
+              className="mt-1 min-h-28 w-full rounded-md border border-gray-500 bg-white p-3 focus:outline-none focus:ring-2 focus:ring-[#618FBA]"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="rules" className="text-base font-semibold">Intereses de intercambio</Label>
+            <textarea
+              id="rules"
+              value={rules}
+              onChange={(event) => setRules(event.target.value)}
+              className="mt-1 min-h-28 w-full rounded-md border border-gray-500 bg-white p-3 focus:outline-none focus:ring-2 focus:ring-[#618FBA]"
+            />
+          </div>
+
+          <div>
+            <Label htmlFor="category" className="text-base font-semibold">Categoría</Label>
+            <select
+              id="category"
+              value={selectedCategoryId || ''}
+              onChange={(event) => setSelectedCategoryId(Number(event.target.value))}
+              className="mt-1 h-11 w-full rounded-md border border-gray-500 bg-white px-3 focus:outline-none focus:ring-2 focus:ring-[#618FBA]"
+              disabled={isLoadingCategories}
+            >
+              <option value="">Selecciona una categoría</option>
+              {categories?.map((category) => (
+                <option key={category.id} value={category.id}>{category.name}</option>
+              ))}
+            </select>
+          </div>
+
+          <fieldset>
+            <legend className="text-base font-semibold">Días disponibles</legend>
+            <div className="mt-3 grid grid-cols-4 gap-3 sm:grid-cols-7">
+              {daysOfWeek.map((day) => (
+                <label key={day.number} className="flex cursor-pointer flex-col items-center gap-2" title={day.label}>
+                  <span className={`flex h-11 w-11 items-center justify-center rounded-full border border-black font-bold ${days.includes(day.number) ? 'bg-[#F7C036]' : 'bg-white'}`}>
+                    {day.name}
+                  </span>
+                  <Checkbox
+                    checked={days.includes(day.number)}
+                    onCheckedChange={() => toggleValue(day.number, setDays)}
+                    aria-label={day.label}
+                  />
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend className="text-base font-semibold">Horarios</legend>
+            <div className="mt-3 flex flex-wrap gap-4">
+              {timeOfDay.map((time) => (
+                <label key={time.number} className="flex cursor-pointer items-center gap-2 rounded-md bg-white px-3 py-2">
+                  <Checkbox
+                    checked={shiftTime.includes(time.number)}
+                    onCheckedChange={() => toggleValue(time.number, setShiftTime)}
+                  />
+                  <span>{time.name}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        </section>
+
+        {(validationErrors.length > 0 || submitError) && (
+          <div role="alert" className="rounded-lg border border-red-300 bg-red-50 p-4 text-sm text-red-800">
+            {validationErrors.map((error) => <p key={error}>{error}</p>)}
+            {submitError && <p>{submitError}</p>}
+          </div>
+        )}
+
+        <div className="flex flex-col-reverse justify-end gap-3 sm:flex-row">
+          <Button type="button" variant="outline" onClick={() => router.back()} disabled={isSubmitting}>
+            <X className="mr-2 h-4 w-4" aria-hidden="true" />
+            Cancelar
+          </Button>
+          <Button type="submit" className="bg-[#F7C036] text-black hover:bg-[#F6B404]" disabled={isSubmitting}>
+            <Save className="mr-2 h-4 w-4" aria-hidden="true" />
+            {isSubmitting ? 'Guardando...' : isEditing ? 'Guardar cambios' : 'Publicar'}
+          </Button>
+        </div>
+      </form>
+    </main>
+  );
 }

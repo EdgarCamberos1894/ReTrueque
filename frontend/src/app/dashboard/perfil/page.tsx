@@ -1,176 +1,69 @@
-'use client'
-import React, { useEffect } from 'react'
-import HeaderProfile from './components/HeaderProfile'
-import FooterProfile from './components/FooterProfile'
-import TopbarGeneral from '@/components/containers/topbar-general'
-import { useAuthStore } from '@/store/auth'
-import { useRouter } from 'next/navigation'
-import useProfile from '@/hooks/useProfile'
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import HeaderProfile from './components/HeaderProfile';
+import FooterProfile from './components/FooterProfile';
+import TopbarGeneral from '@/components/containers/topbar-general';
+import useDataUser from '@/hooks/useDataUser';
+import useProfile from '@/hooks/useProfile';
 import useServicesByIdUser from '@/hooks/useServicesByIdUser';
-import useMensajesEnviados from '@/hooks/useMensajeEnviados';
+import { useReceivedRequests, useSentRequests, useUserComments } from '@/hooks/useRequests';
+import { useAuthStore } from '@/store/auth';
 
+export default function UserProfile() {
+  const token = useAuthStore((state) => state.token);
+  const id = useAuthStore((state) => state.id);
+  const router = useRouter();
+  const { data: user, isLoading: isLoadingUser } = useProfile();
+  const { data: publicUser } = useDataUser(id);
+  const { data: servicesData, isLoading: isLoadingServices } = useServicesByIdUser(id);
+  const { data: sentRequests = [], isLoading: isLoadingSent } = useSentRequests();
+  const { data: receivedRequests = [], isLoading: isLoadingReceived } = useReceivedRequests();
+  const { data: comments = [], isLoading: isLoadingComments } = useUserComments(id);
 
-const DataUser = {
-    name: 'John Doe',
-    avatar: 'https://placehold.co/64x64/png',
-    rating: 4,
-    description:
-        'Perfil sin actualizar'
-}
+  useEffect(() => {
+    if (!token) router.replace('/auth/login');
+  }, [router, token]);
 
-const comments = [
-    {
-        name: 'Jane Doe',
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-    },
-    {
-        name: 'Jane Doe',
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-    },
-    {
-        name: 'Jane Doe',
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-    },
-    {
-        name: 'Jane Doe',
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-    },
-    {
-        name: 'Jane Doe',
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-    },
-    {
-        name: 'Jane Doe',
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-    },
-    {
-        name: 'Jane Doe',
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-    },
-    {
-        name: 'Jane Doe',
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-    }
-]
-// const products = [
-//     {
-//         description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-//     },
-//     {
-//         description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-//     },
-//     {
-//         description: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-//     }
-// ]
-// const requests = [
-//     {
-//         name: 'Jane Doe',
-//         content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-//     },
-//     {
-//         name: 'Jane Doe',
-//         content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-//     },
-//     {
-//         name: 'Jane Doe',
-//         content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-//     }
-// ]
-const receivedRequests = [
-    {
-        name: 'Jane Doe',
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-    },
-    {
-        name: 'Jane Doe',
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-    },
-    {
-        name: 'Jane Doe',
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-    }
-]
-const sentRequests = [
-    {
-        name: 'Luis Mario',
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-    },
-    {
-        name: 'Luis Mario',
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-    },
-    {
-        name: 'Luis Mario',
-        content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.'
-    }
-]
-const UserProfile = ({ }) => {
-    const { token, role, id } = useAuthStore();
-    const router = useRouter()
-    const authUser = true
-    const {data:user, isLoading:isLoadingUser, error:errorUser} = useProfile()
-    const { data: sentRequestsResponse, isLoading: isLoadingSentRequests, isError: isErrorSentRequests } = useMensajesEnviados();
-    //
-    const {
-        data: servicesData,
-        isLoading: isLoadingServices,
-        isError: isErrorServices,
-        error: servicesError
-    } = useServicesByIdUser(id)
-    //
-    const products = servicesData?.data.map((service) => ({
-        id: service.id as number,
-        description: service.description as string,
-        imag: service.imgUrl as string,
-    })) ?? []; 
-    //
-    const sentRequests = sentRequestsResponse?.data.map((mensaje) => ({
-        name: mensaje.user.name,
-        content: mensaje.description
-    })) ?? [];
-    //
-    useEffect(() => {
-        if (!token) {
-            // Si no hay token, redirige al login
-            router.push('/auth/login');
-        }
-    }, [token, router]);
-
-    // Mientras se verifica el token, muestra un loading o nada
-    if (!token) {
-        return <>
-            <TopbarGeneral />
-            <div className='w-full h-screen flex justify-center items-center'>
-                Cargando ...</div></>;
-    }
-
-
+  if (!token || isLoadingUser) {
     return (
-        <>
-            <TopbarGeneral />
-            <section className="user-profile w-full max-w-[1232px] mx-auto m-10 p-10">
-                <HeaderProfile
-                    user={{
-                        name: user?.name || DataUser.name,
-                        profileImagUrl: user?.profileImageUrl || DataUser.avatar,
-                        rating:  DataUser.rating,
-                        ubicacion: user?.provincia && user?.departamento 
-                            ? `${user.provincia} , ${user.departamento}` 
-                            : "Ubicación Sin Actualizar",
-                    }}
-                    products={products}
-                    authUser={authUser}
-                />
-                <FooterProfile
-                    comments={comments}
-                    authUser={authUser}
-                    receivedRequests={receivedRequests}
-                    sentRequests={sentRequests}
-                />
-            </section>
-        </>
-    )
-}
+      <>
+        <TopbarGeneral />
+        <p className="mx-auto max-w-6xl px-4 py-12 text-center">Cargando perfil...</p>
+      </>
+    );
+  }
 
-export default UserProfile
+  const products = servicesData?.data.map((service) => ({
+    id: service.id,
+    title: service.title,
+    description: service.description,
+    imag: service.imgUrl ?? '',
+  })) ?? [];
+
+  return (
+    <>
+      <TopbarGeneral />
+      <main className="mx-auto w-full max-w-6xl px-4 py-10">
+        <HeaderProfile
+          user={{
+            name: `${user?.name ?? ''} ${user?.lastname ?? ''}`.trim() || 'Usuario',
+            profileImagUrl: user?.profileImageUrl,
+            rating: publicUser?.data.averageRating ?? 0,
+            ubicacion: user?.provincia && user?.departamento
+              ? `${user.provincia}, ${user.departamento}`
+              : 'Ubicación sin actualizar',
+          }}
+          products={products}
+        />
+        <FooterProfile
+          comments={comments}
+          receivedRequests={receivedRequests}
+          sentRequests={sentRequests}
+          isLoading={isLoadingServices || isLoadingSent || isLoadingReceived || isLoadingComments}
+        />
+      </main>
+    </>
+  );
+}
