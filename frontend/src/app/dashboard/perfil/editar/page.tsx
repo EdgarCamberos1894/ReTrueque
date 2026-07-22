@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, ChangeEvent } from 'react';
+import { useEffect, useState, useRef, ChangeEvent } from 'react';
 import { useForm } from 'react-hook-form';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -14,9 +14,14 @@ import { UpdateProfileFetch } from '@/services/UpdateProfileFetch';
 import useProvincias from "@/hooks/useProvincias";
 import useDepartaments from '@/hooks/useDepartaments';
 import { useAuthStore } from '@/store/auth';
+import useAuthHydrated from '@/hooks/useAuthHydrated';
+import { useRouter } from 'next/navigation';
 import type { DataUpdateProfile } from '@/lib/request'
 
 const ProfileUpdateForm = () => {
+    const router = useRouter();
+    const token = useAuthStore((state) => state.token);
+    const hasHydrated = useAuthHydrated();
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
     const [profileImage, setProfileImage] = useState<File | null>(null); // Estado para la imagen de perfil
     const { data: user, isLoading: isLoadingUser } = useProfile();
@@ -25,6 +30,10 @@ const ProfileUpdateForm = () => {
     const [selectedProvinciaId, setSelectedProvinciaId] = useState<number | null>(0);
     const [selectedDepartamentoId, setSelectedDepartamentoId] = useState<number | null>(0);
     const [loading, setLoading] = useState<boolean>(false);
+
+    useEffect(() => {
+        if (hasHydrated && !token) router.replace('/auth/login');
+    }, [hasHydrated, router, token]);
 
     const { data: provincias, isLoading: isLoadingProvincias } = useProvincias();
     const { data: departamentos, isLoading: isLoadingDepartamentos } = useDepartaments(selectedProvinciaId || 0);
@@ -90,6 +99,15 @@ const ProfileUpdateForm = () => {
     const handleBackImageClick = () => {
         dniBackInputRef.current?.click();
     };
+
+    if (!hasHydrated || !token || isLoadingUser) {
+        return (
+            <>
+                <TopbarGeneral />
+                <p className="mx-auto max-w-4xl px-4 py-10">Cargando perfil...</p>
+            </>
+        );
+    }
 
     return (
         <>

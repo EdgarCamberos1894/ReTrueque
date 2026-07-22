@@ -9,11 +9,13 @@ import useDataUser from '@/hooks/useDataUser';
 import useProfile from '@/hooks/useProfile';
 import useServicesByIdUser from '@/hooks/useServicesByIdUser';
 import { useReceivedRequests, useSentRequests, useUserComments } from '@/hooks/useRequests';
+import useAuthHydrated from '@/hooks/useAuthHydrated';
 import { useAuthStore } from '@/store/auth';
 
 export default function UserProfile() {
   const token = useAuthStore((state) => state.token);
   const id = useAuthStore((state) => state.id);
+  const hasHydrated = useAuthHydrated();
   const router = useRouter();
   const { data: user, isLoading: isLoadingUser } = useProfile();
   const { data: publicUser } = useDataUser(id);
@@ -23,10 +25,10 @@ export default function UserProfile() {
   const { data: comments = [], isLoading: isLoadingComments } = useUserComments(id);
 
   useEffect(() => {
-    if (!token) router.replace('/auth/login');
-  }, [router, token]);
+    if (hasHydrated && !token) router.replace('/auth/login');
+  }, [hasHydrated, router, token]);
 
-  if (!token || isLoadingUser) {
+  if (!hasHydrated || !token || isLoadingUser) {
     return (
       <>
         <TopbarGeneral />
