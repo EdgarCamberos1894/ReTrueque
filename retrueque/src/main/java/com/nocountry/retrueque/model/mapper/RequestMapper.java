@@ -5,14 +5,12 @@ import com.nocountry.retrueque.model.dto.response.CustomPage;
 import com.nocountry.retrueque.model.dto.response.RequestCommentsRes;
 import com.nocountry.retrueque.model.dto.response.RequestRes;
 import com.nocountry.retrueque.model.entity.Request;
-import org.mapstruct.BeforeMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
-import org.mapstruct.Mappings;
 import org.springframework.data.domain.Page;
 
 @Mapper(componentModel = "spring")
-public interface RequestMapper extends RequestToRequestRes {
+public interface RequestMapper {
     Request toEntity(RequestReq request);
 
     @Mapping(source = "userOrigin.name", target = "name")
@@ -28,31 +26,41 @@ public interface RequestMapper extends RequestToRequestRes {
     @Mapping(target = "pageSize", source = "page.size")
     CustomPage<RequestCommentsRes> toCustomPage(Page<RequestCommentsRes> page);
 
-}
+    default RequestRes toRequestRes(Request request) {
+        var requester = request.getUserOrigin();
+        var requesterProfile = requester.getProfile();
+        var service = request.getServiceTarget();
+        var provider = service.getUser();
+        var providerProfile = provider.getProfile();
 
-@Mapper(componentModel = "spring")
-interface RequestToRequestRes {
-    @BeforeMapping
-    default void beforeToRequestRes(Request request) {
-        if (request.getIsConfirm()) {
-            request.getServiceTarget().getUser().getProfile().setPhone(null);
-        }
+        var requesterData = new RequestRes.UserRequest(
+                requester.getId(),
+                requester.getName(),
+                requester.getLast_name(),
+                requesterProfile.getProfile_image_url(),
+                requesterProfile.getDepartamento().getProvincia().getName(),
+                requesterProfile.getDepartamento().getName()
+        );
+        var providerData = new RequestRes.UserService(
+                provider.getId(),
+                provider.getName(),
+                provider.getLast_name(),
+                providerProfile.getProfile_image_url(),
+                providerProfile.getDepartamento().getProvincia().getName(),
+                providerProfile.getDepartamento().getName(),
+                Boolean.TRUE.equals(request.getIsConfirm()) ? providerProfile.getPhone() : null
+        );
+
+        return new RequestRes(
+                request.getId(),
+                request.getDescription(),
+                request.getDate(),
+                request.getIsConfirm(),
+                request.getRating(),
+                request.getReview(),
+                requesterData,
+                providerData,
+                new RequestRes.ServiceSummary(service.getId(), service.getTitle())
+        );
     }
-
-    @Mappings({
-            @Mapping(source = "userOrigin.name", target = "user.name"),
-            @Mapping(source = "userOrigin.last_name", target = "user.last_name"),
-            @Mapping(source = "userOrigin.profile.profile_image_url", target = "user.img_profile"),
-            @Mapping(source = "userOrigin.profile.departamento.provincia.name", target = "user.provincia"),
-            @Mapping(source = "userOrigin.profile.departamento.name", target = "user.departamento"),
-            @Mapping(source = "isConfirm", target = "status"),
-
-            @Mapping(source = "serviceTarget.user.profile.phone", target = "provider.phone"),
-            @Mapping(source = "serviceTarget.user.name", target = "provider.name"),
-            @Mapping(source = "serviceTarget.user.last_name", target = "provider.last_name"),
-            @Mapping(source = "serviceTarget.user.profile.profile_image_url", target = "provider.img_profile"),
-            @Mapping(source = "serviceTarget.user.profile.departamento.name", target = "provider.departamento"),
-            @Mapping(source = "serviceTarget.user.profile.departamento.provincia.name", target = "provider.provincia")
-    })
-    RequestRes toRequestRes(Request request);
 }
