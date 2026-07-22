@@ -15,7 +15,7 @@ export function useSentRequests() {
   return useQuery({
     queryKey: ['requests', 'sent'],
     queryFn: fetchSentRequests,
-    select: (response) => response.data,
+    select: (response) => response.data ?? [],
     enabled: Boolean(token),
   });
 }
@@ -25,7 +25,7 @@ export function useReceivedRequests() {
   return useQuery({
     queryKey: ['requests', 'received'],
     queryFn: fetchReceivedRequests,
-    select: (response) => response.data,
+    select: (response) => response.data ?? [],
     enabled: Boolean(token),
   });
 }
@@ -34,7 +34,7 @@ export function useUserComments(userId: number) {
   return useQuery({
     queryKey: ['comments', userId],
     queryFn: () => fetchUserComments(userId),
-    select: (response) => response.data.content,
+    select: (response) => response.data.content ?? [],
     enabled: userId > 0,
   });
 }

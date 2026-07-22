@@ -295,7 +295,7 @@ export interface ExchangeRequest {
 
 export interface RequestsResponse {
     message: string;
-    data: ExchangeRequest[];
+    data: ExchangeRequest[] | null;
     success: boolean;
 }
 
@@ -311,7 +311,7 @@ export interface UserComment {
 export interface CommentsResponse {
     message: string;
     data: {
-        content: UserComment[];
+        content: UserComment[] | null;
         currentPage: number;
         totalPages: number;
         totalElements: number;
