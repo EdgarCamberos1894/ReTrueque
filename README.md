@@ -4,7 +4,7 @@ ReTrueque conecta a personas que ofrecen servicios para facilitar intercambios d
 
 ## Despliegues
 
-- Frontend: [https://re-trueque.vercel.app](https://re-trueque.vercel.app)
+- Frontend: [https://retrueque.cambers.lat](https://retrueque.cambers.lat)
 - Backend (Swagger): [https://retrueque.onrender.com/swagger-ui/index.html](https://retrueque.onrender.com/swagger-ui/index.html)
 
 ## Acceso demo
