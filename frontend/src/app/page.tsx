@@ -7,16 +7,21 @@ import SectionServicesHome from '@/components/containers/section-services-home';
 
 export default function Home() {
   return (
-    <main className="w-full">
-      <section>
+    <main className="w-full overflow-x-clip">
+      <section className="relative isolate bg-primary">
         <CarouselHome />
         <TopbarHome />
       </section>
-      <section className="relative flex min-h-28 items-center justify-center bg-primary">
-        <div className="absolute z-10 w-full -translate-y-20">
+
+      <section
+        aria-label="Buscar servicios"
+        className="relative z-30 bg-primary px-4 pb-9 sm:px-6 lg:px-8"
+      >
+        <div className="mx-auto -mt-12 w-full max-w-5xl sm:-mt-16">
           <FormHome />
         </div>
       </section>
+
       <SectionServicesHome />
     </main>
   );
