@@ -1,49 +1,43 @@
-'use client'
-import React from "react";
+'use client';
+
+import { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { z } from 'zod';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from '@/components/ui/select';
 import {
   Form,
   FormControl,
   FormField,
   FormItem,
-} from "@/components/ui/form";
-import { Button } from "../ui/button";
-import { z } from "zod"
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import useProvincias from "@/hooks/useProvincias"; // Hook de provincias
-import useCategorys from '@/hooks/useCategorys'; // Hook de categorías
-import useDepartaments from '@/hooks/useDepartaments'; // Hook de departamentos
-import { useRouter } from 'next/navigation'
-import { useState, useEffect } from "react";
+} from '@/components/ui/form';
+import { Button } from '@/components/ui/button';
+import useProvincias from '@/hooks/useProvincias';
+import useCategorys from '@/hooks/useCategorys';
+import useDepartaments from '@/hooks/useDepartaments';
 
 const formSchema = z.object({
-  provincia: z.string({
-    required_error: "La provincia es obligatoria",
-  }),
-  departamento: z.string({
-    required_error: "Seleccione un departamento",
-  }),
-  category: z.string({
-    required_error: "Seleccione una categoría",
-  }),
-})
+  provincia: z.string().min(1, 'La provincia es obligatoria'),
+  departamento: z.string().min(1, 'Seleccione un departamento'),
+  category: z.string().min(1, 'Seleccione una categoría'),
+});
 
 function FormHome() {
   const router = useRouter();
-  const [selectedServicio, setSelectedServicio] = useState<string>("");
   const [selectedProvinciaId, setSelectedProvinciaId] = useState<number | null>(null);
-  const [loading, setLoading] = useState<boolean>(false);
 
   const { data: provincias, isLoading: isLoadingProvincias } = useProvincias();
   const { data: categorys, isLoading: isLoadingCategorys } = useCategorys();
-  const { data: departamentos, isLoading: isLoadingDepartamentos } = useDepartaments(selectedProvinciaId || 0);
+  const { data: departamentos, isLoading: isLoadingDepartamentos } = useDepartaments(
+    selectedProvinciaId || 0,
+  );
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -51,63 +45,54 @@ function FormHome() {
       provincia: '',
       departamento: '',
       category: '',
-    }
+    },
   });
 
   const onSubmit = (data: z.infer<typeof formSchema>) => {
-    // console.log("form-home Data Form:",data);
-    
     const searchParams = new URLSearchParams({
-      provincia: data.provincia || '',
-      departamento: data.departamento || '',
-      category: data.category || ''
+      provincia: data.provincia,
+      departamento: data.departamento,
+      category: data.category,
     });
 
     router.push(`/public/searchCategorys?${searchParams.toString()}`);
   };
 
-  useEffect(() => {
-    // Verificar si provincias está definido antes de usarlo
-    if (provincias) {
-        const subscription = form.watch((data) => {
-            const selectedProvincia = provincias.find(p => p.id.toString() === data.provincia);
-            if (selectedProvincia) {
-                setSelectedProvinciaId(selectedProvincia.id);
-            } else {
-                setSelectedProvinciaId(null);
-            }
-        });
-
-        return () => subscription.unsubscribe();
-    }
-}, [provincias, form]);
-
   return (
-    <div className="relative flex flex-row items-center justify-center p-10 bg-secondary rounded-lg container w-[65%] gap-4">
+    <div className="w-full rounded-2xl bg-secondary p-4 shadow-xl sm:p-6">
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="w-full flex flex-wrap justify-center gap-4 p-4">
-
-          {/* Provincia */}
+        <form
+          onSubmit={form.handleSubmit(onSubmit)}
+          className="grid w-full gap-3 sm:grid-cols-2 lg:grid-cols-[repeat(3,minmax(0,1fr))_auto] lg:items-center"
+        >
           <FormField
             name="provincia"
             control={form.control}
             render={({ field }) => (
-              <FormItem className="w-[150px] shadow-md shadow-gray-600 rounded-lg">
+              <FormItem className="w-full">
                 <FormControl>
-                  <Select onValueChange={(value) => { field.onChange(value); }} value={field.value || ""}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Provincia" />
+                  <Select
+                    value={field.value || ''}
+                    disabled={isLoadingProvincias}
+                    onValueChange={(value) => {
+                      field.onChange(value);
+                      form.setValue('departamento', '');
+                      setSelectedProvinciaId(Number(value));
+                    }}
+                  >
+                    <SelectTrigger className="h-12 w-full bg-white shadow-md">
+                      <SelectValue placeholder={isLoadingProvincias ? 'Cargando provincias...' : 'Provincia'} />
                     </SelectTrigger>
                     <SelectContent>
-                      {Array.isArray(provincias) ? (
+                      {Array.isArray(provincias) && provincias.length > 0 ? (
                         provincias.map((provincia) => (
                           <SelectItem key={provincia.id} value={provincia.id.toString()}>
                             {provincia.name}
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem value="error" disabled>
-                          Cargando
+                        <SelectItem value="no-provincias" disabled>
+                          No hay provincias disponibles
                         </SelectItem>
                       )}
                     </SelectContent>
@@ -117,27 +102,34 @@ function FormHome() {
             )}
           />
 
-          {/* Departamento */}
           <FormField
             name="departamento"
             control={form.control}
             render={({ field }) => (
-              <FormItem className="w-[150px] shadow-md shadow-gray-600 rounded-lg">
+              <FormItem className="w-full">
                 <FormControl>
-                  <Select onValueChange={field.onChange}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Dpto" />
+                  <Select
+                    value={field.value || ''}
+                    onValueChange={field.onChange}
+                    disabled={!selectedProvinciaId || isLoadingDepartamentos}
+                  >
+                    <SelectTrigger className="h-12 w-full bg-white shadow-md">
+                      <SelectValue
+                        placeholder={
+                          isLoadingDepartamentos ? 'Cargando departamentos...' : 'Departamento'
+                        }
+                      />
                     </SelectTrigger>
                     <SelectContent>
-                      {Array.isArray(departamentos) ? (
+                      {Array.isArray(departamentos) && departamentos.length > 0 ? (
                         departamentos.map((departamento) => (
                           <SelectItem key={departamento.id} value={departamento.id.toString()}>
                             {departamento.name}
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem value="error" disabled>
-                          Cargando
+                        <SelectItem value="no-departamentos" disabled>
+                          Seleccione una provincia
                         </SelectItem>
                       )}
                     </SelectContent>
@@ -147,27 +139,30 @@ function FormHome() {
             )}
           />
 
-          {/* Categoría */}
           <FormField
             name="category"
             control={form.control}
             render={({ field }) => (
-              <FormItem className="w-[150px] shadow-md shadow-gray-600 rounded-lg">
+              <FormItem className="w-full">
                 <FormControl>
-                  <Select onValueChange={field.onChange}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Categoría" />
+                  <Select
+                    value={field.value || ''}
+                    onValueChange={field.onChange}
+                    disabled={isLoadingCategorys}
+                  >
+                    <SelectTrigger className="h-12 w-full bg-white shadow-md">
+                      <SelectValue placeholder={isLoadingCategorys ? 'Cargando categorías...' : 'Categoría'} />
                     </SelectTrigger>
                     <SelectContent>
-                      {Array.isArray(categorys) ? (
+                      {Array.isArray(categorys) && categorys.length > 0 ? (
                         categorys.map((category) => (
                           <SelectItem key={category.id} value={category.id.toString()}>
                             {category.name}
                           </SelectItem>
                         ))
                       ) : (
-                        <SelectItem value="error" disabled>
-                          Cargando
+                        <SelectItem value="no-categorias" disabled>
+                          No hay categorías disponibles
                         </SelectItem>
                       )}
                     </SelectContent>
@@ -177,11 +172,9 @@ function FormHome() {
             )}
           />
 
-          {/* Botón de Buscar */}
           <Button
             type="submit"
-            variant="default"
-            className="text-black text-base font-bold leading-normal tracking-tight bg-primary shadow-md shadow-gray-600 rounded-lg px-14"
+            className="h-12 w-full bg-primary px-8 text-base font-bold text-black shadow-md hover:bg-primary-variant-1 sm:col-span-2 lg:col-span-1 lg:w-auto"
           >
             Buscar
           </Button>
