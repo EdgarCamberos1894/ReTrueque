@@ -43,7 +43,7 @@ function PublishAction({
   className,
 }: PublishActionProps) {
   const buttonClassName = cn(
-    'min-h-12 w-full max-w-xs bg-primary px-6 font-bold uppercase text-black shadow-lg hover:bg-primary-variant-1 sm:w-auto',
+    'min-h-12 w-full max-w-xs border-2 border-white bg-secondary px-6 font-bold uppercase text-black shadow-[0_8px_24px_rgba(0,0,0,0.35)] hover:bg-secondary-variant-1 focus-visible:ring-white sm:w-auto',
     className,
   );
 
