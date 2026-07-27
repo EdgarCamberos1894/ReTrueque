@@ -1,94 +1,122 @@
-'use client'
-import React from 'react'
+'use client';
+
+import React from 'react';
+import Autoplay from 'embla-carousel-autoplay';
+import Image from 'next/image';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import * as Dialog from '@radix-ui/react-dialog';
+import { AlertCircleIcon } from 'lucide-react';
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
-} from "@/components/ui/carousel"
-import { Card, CardContent } from "@/components/ui/card";
-import Autoplay from 'embla-carousel-autoplay'
-import Image from 'next/image';
-import { Button } from '../ui/button';
-import { useRouter } from 'next/navigation';
+} from '@/components/ui/carousel';
+import { Button } from '@/components/ui/button';
 import { useAuthStore } from '@/store/auth';
-import * as Dialog from '@radix-ui/react-dialog';
-import { AlertCircleIcon, PencilIcon } from 'lucide-react';
-import Link from 'next/link';
+
+const banners = [
+  'banner1psd 4.jpg',
+  'banner2psd 2.jpg',
+  'banner3psd 2.jpg',
+];
 
 function CarouselHome() {
-  const router = useRouter()
-  const {token, clearAuth} = useAuthStore();
-  
+  const router = useRouter();
+  const { token } = useAuthStore();
+  const autoplay = React.useRef(
+    Autoplay({
+      delay: 4000,
+      stopOnInteraction: false,
+      stopOnMouseEnter: true,
+    }),
+  );
+
   return (
-    <div className="w-full bg-primary">
-        <Carousel opts={{
-          align: "start",
+    <section
+      aria-label="Servicios destacados de ReTrueque"
+      className="relative w-full overflow-hidden bg-primary"
+    >
+      <Carousel
+        className="w-full"
+        opts={{
+          align: 'center',
           loop: true,
           duration: 60,
         }}
-        plugins={[Autoplay({ delay: 4000, })]}>
-          <CarouselContent>
-            {['banner1psd 4.jpg','banner2psd 2.jpg','banner3psd 2.jpg',].map((item,index) => (
-              <CarouselItem key={index} className='w-auto'>
-                <div className='w-auto h-[100vh] relative'>
-                  <Image
-                    src={`/img/${item}`}
-                    alt={`HeroImg ${index+1}`}
-                    priority={index === 0} // Carga la imagen prioritariamente
-                    className='w-full h-full'
-                    fill
-                  />
-                </div>
-              </CarouselItem>
-            ))}
-          </CarouselContent>
-          { !token ? ( //Si no hay sesión, mostrar dialog
-            <Dialog.Root>
-              <Dialog.Trigger className='bg-primary shadow-md shadow-gray-600 hover:bg-primary-variant-1 rounded-lg px-4 py-4 -translate-y-[15rem] ml-12 uppercase'>
-                Publicar Anuncio
-              </Dialog.Trigger>
-              <Dialog.Portal>
-                <Dialog.Overlay className='fixed inset-0 bg-black/50 z-40' />
-                <Dialog.Title>Aviso Requiere Loguearse</Dialog.Title>
-                <Dialog.Content className='fixed z-50 left-1/2 top-1/2 rounded-md bg-white p-8 textgray9 shadow -translate-x-1/2 -translate-y-1/2'>
-                  <div className="flex flex-col items-center gap-3">
-                    <div>
-                      <AlertCircleIcon className='text-red-800 size-24' />
+        plugins={[autoplay.current]}
+      >
+        <CarouselContent className="ml-0">
+          {banners.map((item, index) => (
+            <CarouselItem key={item} className="basis-full pl-0">
+              <div className="relative h-[clamp(440px,72svh,720px)] w-full sm:h-[clamp(500px,68svh,720px)]">
+                <Image
+                  src={`/img/${item}`}
+                  alt={`Servicio destacado ${index + 1} de ReTrueque`}
+                  priority={index === 0}
+                  fill
+                  sizes="100vw"
+                  className="object-cover object-center"
+                />
+                <div
+                  aria-hidden="true"
+                  className="absolute inset-0 bg-gradient-to-t from-black/35 via-transparent to-black/10"
+                />
+              </div>
+            </CarouselItem>
+          ))}
+        </CarouselContent>
+
+        <div className="pointer-events-none absolute inset-x-0 bottom-20 z-20 px-4 sm:bottom-24 sm:px-6 lg:px-8">
+          <div className="mx-auto flex w-full max-w-7xl justify-center sm:justify-start">
+            {!token ? (
+              <Dialog.Root>
+                <Dialog.Trigger asChild>
+                  <Button
+                    size="lg"
+                    className="pointer-events-auto min-h-12 w-full max-w-xs bg-primary px-6 font-bold uppercase text-black shadow-lg hover:bg-primary-variant-1 sm:w-auto"
+                  >
+                    Publicar anuncio
+                  </Button>
+                </Dialog.Trigger>
+                <Dialog.Portal>
+                  <Dialog.Overlay className="fixed inset-0 z-40 bg-black/55 backdrop-blur-sm" />
+                  <Dialog.Content className="fixed left-1/2 top-1/2 z-50 w-[calc(100%-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 rounded-xl bg-white p-6 shadow-2xl sm:p-8">
+                    <div className="flex flex-col items-center gap-4 text-center">
+                      <AlertCircleIcon className="h-16 w-16 text-red-700 sm:h-20 sm:w-20" aria-hidden="true" />
+                      <Dialog.Title className="text-md font-bold">
+                        Inicia sesión para publicar
+                      </Dialog.Title>
+                      <Dialog.Description className="text-xs text-neutral-700">
+                        Para publicar un servicio necesitas registrarte o iniciar sesión. Únete a la comunidad y comienza a intercambiar tus habilidades.
+                      </Dialog.Description>
+                      <div className="mt-2 flex w-full flex-col gap-3 sm:flex-row sm:justify-center">
+                        <Button asChild variant="outline" className="w-full font-bold sm:w-auto">
+                          <Link href="/auth/login">Iniciar sesión</Link>
+                        </Button>
+                        <Button asChild variant="secondary" className="w-full font-bold sm:w-auto">
+                          <Link href="/auth/registro">Registrarse</Link>
+                        </Button>
+                      </div>
                     </div>
-                    <h1 className='text-md font-bold'>
-                      ¡Atención!
-                    </h1>
-                    <h4 className='max-w-[32rem] text-center'>
-                      Para publicar un servicio, debes registrarte o iniciar sesión en tu cuenta. ¡Únete a nuestra comunidad para comenzar a intercambiar servicios!
-                    </h4>
-                    <div className="flex items-center justify-center gap-4 py-6">
-                      <Link href='/login' className='text-black border border-blue-500 font-bold py-3 px-8 rounded-lg'>
-                        Iniciar Sesión
-                      </Link>
-                      
-                      <Button onClick={() => router.push('/registro')} variant="secondary" size="sm" className="text-black font-bold p-6 px-8">
-                        Registrarse
-                      </Button>
-                    </div>
-                  </div>
-                </Dialog.Content>
-              </Dialog.Portal>
-            </Dialog.Root>
-          ) : ( //Si hay sesión mostrar botón que redirige
-            <Button
-              type="submit"
-              variant="default"
-              onClick={() => router.push('/public/servicio/nuevo')}
-              className="bg-primary shadow-md shadow-gray-600 rounded-lg px-4 py-4 -translate-y-[15rem] ml-12 uppercase"
-            >
-              Publicar Anuncio
-            </Button>
-          )}
-        </Carousel>
-    </div>
-  )
+                  </Dialog.Content>
+                </Dialog.Portal>
+              </Dialog.Root>
+            ) : (
+              <Button
+                type="button"
+                size="lg"
+                onClick={() => router.push('/public/servicio/nuevo')}
+                className="pointer-events-auto min-h-12 w-full max-w-xs bg-primary px-6 font-bold uppercase text-black shadow-lg hover:bg-primary-variant-1 sm:w-auto"
+              >
+                Publicar anuncio
+              </Button>
+            )}
+          </div>
+        </div>
+      </Carousel>
+    </section>
+  );
 }
 
-export default CarouselHome
+export default CarouselHome;
