@@ -15,9 +15,9 @@ export default function Home() {
 
       <section
         aria-label="Buscar servicios"
-        className="relative z-30 bg-primary px-4 pb-9 sm:px-6 lg:px-8"
+        className="relative z-30 bg-primary px-4 pb-9 pt-4 sm:px-6 sm:pt-0 lg:px-8"
       >
-        <div className="mx-auto -mt-12 w-full max-w-5xl sm:-mt-16">
+        <div className="mx-auto w-full max-w-5xl sm:-mt-16">
           <FormHome />
         </div>
       </section>
