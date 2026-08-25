@@ -1,86 +1,143 @@
-# ReTrueque
+<p align="center">
+  <img src="./frontend/public/logort.png" alt="ReTrueque" width="190" />
+</p>
 
-ReTrueque es una plataforma colaborativa de intercambio de servicios. Permite publicar servicios, solicitar intercambios, gestionar solicitudes entre usuarios y dejar calificaciones una vez completado un acuerdo.
+<h1 align="center">ReTrueque</h1>
 
-## Demo y documentación
+<p align="center">
+  Plataforma colaborativa para publicar servicios, solicitar intercambios y gestionar acuerdos entre usuarios.
+</p>
 
-- Frontend: https://retrueque.cambers.lat
-- Backend / Swagger: https://api.retrueque.cambers.lat/swagger-ui/index.html
-- Portafolio: https://cambers.lat
+<p align="center">
+  <a href="https://retrueque.cambers.lat"><strong>Demo</strong></a>
+  ·
+  <a href="https://api.retrueque.cambers.lat/swagger-ui/index.html"><strong>Swagger</strong></a>
+  ·
+  <a href="https://cambers.lat"><strong>Portafolio</strong></a>
+  ·
+  <a href="https://github.com/No-Country-simulation/s17-11-n-java-next"><strong>Proyecto original</strong></a>
+</p>
 
-## Origen y contexto
+<p align="center">
+  <img src="https://img.shields.io/badge/Java-17-ED8B00?style=flat-square&logo=openjdk&logoColor=white" alt="Java 17" />
+  <img src="https://img.shields.io/badge/Spring%20Boot-3.3-6DB33F?style=flat-square&logo=springboot&logoColor=white" alt="Spring Boot 3.3" />
+  <img src="https://img.shields.io/badge/Next.js-14-000000?style=flat-square&logo=nextdotjs&logoColor=white" alt="Next.js 14" />
+  <img src="https://img.shields.io/badge/PostgreSQL-Database-4169E1?style=flat-square&logo=postgresql&logoColor=white" alt="PostgreSQL" />
+  <img src="https://img.shields.io/badge/Docker-Containerized-2496ED?style=flat-square&logo=docker&logoColor=white" alt="Docker" />
+  <a href="https://github.com/EdgarCamberos1894/ReTrueque/actions/workflows/ci.yml">
+    <img src="https://github.com/EdgarCamberos1894/ReTrueque/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" />
+  </a>
+</p>
 
-ReTrueque nació como un proyecto colaborativo dentro de una simulación de No Country y fue desarrollado por un equipo multidisciplinario.
+---
 
-Este repositorio es mi fork personal del proyecto original. Lo conservo como parte de mi portafolio y como referencia de mi evolución como desarrollador backend, incluyendo trabajo y ajustes posteriores realizados sobre mi versión.
+## Sobre el proyecto
 
-- Repositorio original del equipo: https://github.com/No-Country-simulation/s17-11-n-java-next
-- Mi fork: https://github.com/EdgarCamberos1894/ReTrueque
+ReTrueque es una plataforma de intercambio de servicios entre personas. Permite publicar servicios, descubrir ofertas de otros usuarios, enviar solicitudes de intercambio, aceptar o rechazar solicitudes y registrar comentarios y calificaciones después de un acuerdo.
 
-## Estructura del repositorio
+El proyecto nació como parte de una simulación colaborativa de **No Country**, desarrollada por un equipo multidisciplinario. Este repositorio es mi fork personal y conserva tanto el trabajo realizado durante la simulación como ajustes posteriores para convertirlo en una demo de portafolio más clara y mantenible.
+
+> **Rama canónica:** `main` contiene actualmente frontend y backend dentro del mismo repositorio.
+
+## Mi aporte
+
+Mi trabajo se concentró principalmente en el backend y en la integración de funcionalidades que atravesaban distintas partes del sistema:
+
+- Diseño de endpoints y reglas de negocio con Java y Spring Boot.
+- Autenticación con JWT y controles de autorización.
+- Flujo de solicitudes de intercambio, aceptación y rechazo.
+- Verificación de cuentas mediante tokens y correo electrónico.
+- Emails transaccionales.
+- Integración con Amazon S3 para imágenes.
+- DTOs, mappers y separación por capas.
+- Migraciones de base de datos con Flyway.
+- Documentación de la API con OpenAPI / Swagger.
+- Mantenimiento posterior del fork, ajustes para demo y consolidación del monorepo.
+
+La intención de conservar este proyecto en mi portafolio no es presentarlo como mi arquitectura más avanzada, sino mostrar un punto importante de mi evolución: pasar de pensar únicamente en que una funcionalidad funcionara a considerar también revisión, mantenibilidad, autorización, pruebas y separación de responsabilidades.
+
+## Arquitectura
+
+```mermaid
+flowchart LR
+    U[Usuario] --> F[Next.js + TypeScript]
+    F -->|REST / JWT| B[Spring Boot API]
+    B --> DB[(PostgreSQL)]
+    B --> S3[Amazon S3]
+    B --> E[Resend / Email]
+```
+
+La aplicación se mantiene como un monorepo con dos componentes principales:
 
 ```text
 ReTrueque/
 ├── frontend/     # Aplicación web con Next.js
 ├── retrueque/    # API REST con Java y Spring Boot
-├── .github/      # Automatización y plantilla de pull requests
+├── .github/      # CI y plantillas de colaboración
 └── README.md
 ```
 
-`main` es la rama destinada a representar la versión canónica del proyecto. Las ramas históricas del frontend y backend se conservan como referencia del flujo de trabajo previo a esta consolidación.
+## Stack tecnológico
 
-## Mi aporte
-
-Mi trabajo se centró principalmente en el backend: diseño de endpoints y reglas de negocio, autenticación JWT, autorización, flujo de solicitudes, emails transaccionales, carga de imágenes en Amazon S3, migraciones de base de datos y documentación de la API.
-
-También mantuve posteriormente mi fork para corregir el despliegue, preparar una experiencia de demostración y consolidar frontend y backend dentro de una única versión navegable del proyecto.
-
-## Tecnologías
-
-### Backend
-
-- Java 17
-- Spring Boot 3
-- Spring Security con JWT
-- Spring Data JPA
-- PostgreSQL
-- Flyway
-- Amazon S3
-- Thymeleaf y Resend
-- OpenAPI / Swagger
-- Docker
-
-### Frontend
-
-- Next.js
-- TypeScript
-- React
-- Tailwind CSS
-- TanStack Query
-- Zustand
-- React Hook Form + Zod
+| Área | Tecnologías |
+| --- | --- |
+| Backend | Java 17, Spring Boot 3.3, Spring Security, Spring Data JPA |
+| Seguridad | JWT, autorización por usuario y propiedad del recurso |
+| Base de datos | PostgreSQL, Flyway |
+| Frontend | Next.js 14, React 18, TypeScript, Tailwind CSS |
+| Estado y datos | TanStack Query, Zustand |
+| Formularios | React Hook Form, Zod |
+| Archivos | Amazon S3 |
+| Email | Resend, Thymeleaf |
+| API | REST, OpenAPI / Swagger |
+| Infraestructura | Docker, Vercel, despliegue backend independiente |
+| Calidad | GitHub Actions para build de frontend y validación del backend |
 
 ## Funcionalidades destacadas
 
 - Registro, autenticación y verificación de cuentas por correo.
-- Publicación, edición y eliminación de servicios con control de propiedad.
+- Publicación, edición y eliminación de servicios.
+- Control de propiedad para operaciones sensibles.
 - Búsqueda paginada y filtros por categoría, provincia y departamento.
-- Solicitudes entre usuarios, con aceptación o rechazo por parte del dueño del servicio.
-- Comentarios y calificaciones disponibles tras una solicitud aceptada.
+- Solicitudes entre usuarios.
+- Aceptación o rechazo por parte del dueño del servicio.
+- Comentarios y calificaciones después de una solicitud aceptada.
 - Subida de imágenes a Amazon S3.
-- Documentación interactiva de la API con Swagger.
+- Documentación interactiva mediante Swagger UI.
 
-## Acceso demo
+## Probar la demo
 
-Las dos cuentas existen para poder probar un flujo entre usuarios. No representan dos roles de autorización distintos.
+Las dos cuentas demo existen para poder observar el flujo desde ambos lados de una interacción. **No representan roles de autorización diferentes.**
 
-- John, cuenta solicitante: `john_doe@example.com`
-- Jane, cuenta prestadora: `jane_smith@example.com`
-- Contraseña para ambas: `Demo123!`
+| Cuenta | Uso sugerido | Credenciales |
+| --- | --- | --- |
+| John | Explorar servicios y generar solicitudes | `john_doe@example.com` |
+| Jane | Revisar la experiencia desde el otro lado del intercambio | `jane_smith@example.com` |
 
-Puedes utilizar John para explorar servicios y generar solicitudes, y Jane para revisar el flujo desde el otro lado de la interacción.
+**Contraseña para ambas:** `Demo123!`
 
-## Ejecutar el frontend
+Puedes comenzar explorando la aplicación con John y después entrar con Jane para revisar cómo cambia la experiencia cuando la interacción pertenece al otro usuario.
+
+### Accesos rápidos
+
+- Aplicación: https://retrueque.cambers.lat
+- Swagger UI: https://api.retrueque.cambers.lat/swagger-ui/index.html
+- Portafolio: https://cambers.lat
+
+## Decisiones técnicas
+
+Algunas decisiones que ayudan a entender el proyecto actual:
+
+- **DTOs en la API:** las entidades de persistencia no se utilizan directamente como contrato externo.
+- **Flyway como fuente de verdad del esquema:** las migraciones versionan los cambios de base de datos y producción utiliza validación del esquema.
+- **Autorización por propiedad:** editar o eliminar un recurso requiere validar que pertenece al usuario autenticado.
+- **Integraciones aisladas mediante servicios:** almacenamiento y correo se mantienen fuera de los controladores.
+- **Configuración por entorno:** URLs, credenciales y secretos se inyectan mediante variables de entorno.
+- **Frontend y backend en `main`:** los despliegues pueden consumir la misma rama usando directorios raíz distintos.
+
+## Ejecutar localmente
+
+### Frontend
 
 ```bash
 cd frontend
@@ -89,7 +146,7 @@ npm install
 npm run dev
 ```
 
-Por defecto, el frontend queda disponible en `http://localhost:3000`.
+Por defecto queda disponible en `http://localhost:3000`.
 
 Variables principales:
 
@@ -98,12 +155,13 @@ NEXT_PUBLIC_BACKEND_URL=http://localhost:8080
 NEXT_PUBLIC_API_URL=http://localhost:3000
 ```
 
-## Ejecutar el backend
+### Backend
 
-1. Entra en la carpeta `retrueque`.
-2. Copia `.env.example` como `.env` y completa las variables con tus credenciales locales.
-3. Crea una base de datos PostgreSQL vacía y ajusta `DATABASE`, `DB_USER` y `DB_PASSWORD`.
-4. Inicia la aplicación en modo desarrollo.
+Requisitos principales:
+
+- Java 17
+- PostgreSQL
+- Variables de entorno configuradas a partir de `retrueque/.env.example`
 
 En PowerShell:
 
@@ -114,22 +172,39 @@ $env:SPRING_PROFILES_ACTIVE="dev"
 .\mvnw.cmd spring-boot:run
 ```
 
-Flyway crea y versiona el esquema de base de datos. Swagger UI queda disponible localmente en:
+Flyway crea y versiona el esquema de base de datos. Con la aplicación en ejecución, Swagger UI queda disponible en:
 
 `http://localhost:8080/swagger-ui/index.html`
 
 ## Rutas principales de la API
 
-- `POST /api/v1/auth/register`
-- `POST /api/v1/auth/login`
-- `GET|POST|PUT|DELETE /api/v1/service`
-- `GET|POST|PUT /api/v1/requests`
+```text
+POST                 /api/v1/auth/register
+POST                 /api/v1/auth/login
+GET|POST|PUT|DELETE  /api/v1/service
+GET|POST|PUT         /api/v1/requests
+```
 
 ## Despliegue
 
-La estructura está preparada para desplegar ambos componentes desde la misma rama:
+La estructura del repositorio permite desplegar ambos componentes desde `main`:
 
-- Vercel: rama `main`, directorio raíz `frontend`.
-- Backend: rama `main`, directorio raíz `retrueque`.
+| Componente | Rama | Directorio raíz |
+| --- | --- | --- |
+| Frontend | `main` | `frontend` |
+| Backend | `main` | `retrueque` |
 
-Las credenciales y variables de entorno deben configurarse en cada plataforma de despliegue y no versionarse en el repositorio.
+Las variables de entorno se configuran en cada plataforma y no deben versionarse en el repositorio.
+
+## Origen y trazabilidad
+
+ReTrueque fue desarrollado originalmente como un proyecto colaborativo de No Country. Este fork conserva esa procedencia y enlaza explícitamente al repositorio del equipo para mantener clara la atribución del trabajo.
+
+- **Repositorio original:** https://github.com/No-Country-simulation/s17-11-n-java-next
+- **Fork personal:** https://github.com/EdgarCamberos1894/ReTrueque
+
+---
+
+<p align="center">
+  Proyecto conservado como evidencia técnica y como registro de mi evolución en desarrollo backend.
+</p>
