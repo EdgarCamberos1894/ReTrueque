@@ -1,0 +1,60 @@
+spring:
+  servlet:
+    multipart:
+      enabled: true
+      file-size-threshold: 2MB
+      max-request-size: 10MB
+      max-file-size: 10MB
+  application:
+    name: retrueque
+  datasource:
+    url: ${DATABASE}
+    username: ${DB_USER}
+    password: ${DB_PASSWORD}
+    hikari:
+      schema: retrueque
+      maximum-pool-size: ${DB_POOL_MAX_SIZE:2}
+      minimum-idle: ${DB_POOL_MIN_IDLE:0}
+      connection-timeout: ${DB_POOL_CONNECTION_TIMEOUT_MS:30000}
+      idle-timeout: ${DB_POOL_IDLE_TIMEOUT_MS:300000}
+      pool-name: ${spring.application.name}-pool
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        default_schema: retrueque
+  flyway:
+    schemas: retrueque
+    default-schema: retrueque
+    create-schemas: true
+logging:
+  level:
+    org.springframework.security: INFO
+jwt:
+  time:
+    expiration: ${JWT_EXPIRATION}
+  secret:
+    key: ${JWT_SECRETKEY}
+api:
+  base: api/v1
+email:
+  token:
+    time:
+      expiration: ${EMAIL_TOKEN_EXPIRATION}
+  link:
+    confirmation: ${LINK_CONFIRMATION}
+resend:
+  api-key: ${RESEND_APIKEY}
+  from: ${RESEND_EMAIL}
+aws:
+  s3:
+    bucketName: ${AWS_BUCKET_NAME}
+    accessKeyId: ${AWS_KEY_ID}
+    secretAccessKey: ${AWS_SECRET_ACCESS_KEY}
+    region: ${AWS_REGION}
+web:
+  frontend-url: ${FRONTEND_URL:http://localhost:3000}
+  cors:
+    allowed-origins: ${CORS_ALLOWED:${FRONTEND_URL:http://localhost:3000}}
